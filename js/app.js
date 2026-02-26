@@ -865,33 +865,49 @@ const AI = {
     },
 
     speak: async (text) => {
-        const key = localStorage.getItem('azi_ai_key');
-        const voice = localStorage.getItem('azi_ai_voice') || 'alloy';
+        const provider = localStorage.getItem('azi_ai_provider') || 'browser';
 
-        if (key && key.startsWith('sk-')) {
-            try {
-                const response = await fetch('https://api.openai.com/v1/audio/speech', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${key}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model: 'tts-1',
-                        input: text,
-                        voice: voice
-                    })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const audio = new Audio(url);
-                    audio.play();
-                    return;
-                }
-            } catch (e) {
-                console.error("OpenAI TTS Error:", e);
+        if (provider === 'openai') {
+            const key = localStorage.getItem('azi_ai_key');
+            const voice = localStorage.getItem('azi_ai_voice') || 'alloy';
+            if (key && key.startsWith('sk-')) {
+                try {
+                    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${key}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ model: 'tts-1', input: text, voice: voice })
+                    });
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const audio = new Audio(URL.createObjectURL(blob));
+                        audio.play();
+                        return;
+                    }
+                } catch (e) { console.error("OpenAI TTS Error:", e); }
+            }
+        } else if (provider === 'google') {
+            const googleKey = localStorage.getItem('azi_ai_google_key');
+            const googleVoice = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
+            if (googleKey) {
+                try {
+                    const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            input: { text: text },
+                            voice: { languageCode: 'es-MX', name: googleVoice },
+                            audioConfig: { audioEncoding: 'MP3' }
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.audioContent) {
+                        const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+                        audio.play();
+                        return;
+                    }
+                } catch (e) { console.error("Google TTS Error:", e); }
             }
         }
 
@@ -920,11 +936,19 @@ function toggleAgenticAI() {
     if (!panel.classList.contains('hidden')) {
         AI.renderPulse();
         // Sync Settings UI
-        const keyInput = document.getElementById('ai-api-key');
-        const voiceSel = document.getElementById('ai-voice-preset');
-        if (keyInput) keyInput.value = localStorage.getItem('azi_ai_key') || '';
-        if (voiceSel) voiceSel.value = localStorage.getItem('azi_ai_voice') || 'alloy';
+        document.getElementById('ai-provider').value = localStorage.getItem('azi_ai_provider') || 'browser';
+        document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
+        document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
+        document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
+        document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
+        updateAIFields();
     }
+}
+
+function updateAIFields() {
+    const provider = document.getElementById('ai-provider').value;
+    document.getElementById('field-openai').classList.toggle('hidden', provider !== 'openai');
+    document.getElementById('field-google').classList.toggle('hidden', provider !== 'google');
 }
 
 function toggleAISettings() {
@@ -937,15 +961,20 @@ function toggleAISettings() {
 }
 
 function saveAISettings() {
-    const key = document.getElementById('ai-api-key').value.trim();
-    const voice = document.getElementById('ai-voice-preset').value;
+    const provider = document.getElementById('ai-provider').value;
+    localStorage.setItem('azi_ai_provider', provider);
 
-    localStorage.setItem('azi_ai_key', key);
-    localStorage.setItem('azi_ai_voice', voice);
+    if (provider === 'openai') {
+        localStorage.setItem('azi_ai_key', document.getElementById('ai-api-key').value.trim());
+        localStorage.setItem('azi_ai_voice', document.getElementById('ai-voice-preset').value);
+    } else if (provider === 'google') {
+        localStorage.setItem('azi_ai_google_key', document.getElementById('ai-google-key').value.trim());
+        localStorage.setItem('azi_ai_google_voice', document.getElementById('ai-google-voice').value);
+    }
 
     alert('✅ Configuración de IA Guardada Correctamente.');
     toggleAISettings();
-    AI.speak("Configuración de voz profesional actualizada.");
+    AI.speak("Configuración de IA actualizada.");
 }
 
 async function askAI(topic) {
