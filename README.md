@@ -63,7 +63,7 @@
 
 | Login & Security | Admin Dashboard | Driver Operations |
 | :--- | :--- | :--- |
-| ![Login UI](https://via.placeholder.com/200x400?text=Premium+Login) | ![Admin View](https://via.placeholder.com/400x250?text=Live+Map+Analytics) | ![User View](https://via.placeholder.com/200x400?text=Voice+Control) |
+| ![Login UI](screenshots/login_ui.png) | ![Admin View](screenshots/admin_view.png) | ![User View](screenshots/user_view.png) |
 
 ---
 
