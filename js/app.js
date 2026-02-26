@@ -464,9 +464,22 @@ function processVoiceCommand(text, ctx) {
             handleLogin();
         }
     } else {
-        // Simple logic for checkout/checkin
+        // AGENTIC COMMANDS
+        if (raw.includes('estatus') || raw.includes('estado')) {
+            askAI('status');
+            return;
+        }
+        if (raw.includes('mantenimiento') || raw.includes('servicio')) {
+            askAI('maintenance');
+            return;
+        }
         if (raw.includes('retirar') || raw.includes('salida')) showCheckoutForm();
         if (raw.includes('entregar') || raw.includes('llegue')) showCheckinForm();
+        if (raw.includes('inspección') || raw.includes('verificar')) {
+            AI.speak("Iniciando revisión de inteligencia...");
+            AI.renderPulse();
+            if (!document.getElementById('screen-admin').classList.contains('hidden')) setAdminTab('dash');
+        }
     }
 }
 
@@ -727,7 +740,121 @@ async function handleBioLogin() {
     }
 }
 
+/**
+ * @section AGENTIC AI ENGINE
+ */
+const AI = {
+    getInsights: () => {
+        const units = DB.data().units;
+        const logs = DB.data().logs;
+        const insights = [];
+
+        // 1. Overuse Detection
+        const outLogs = logs.filter(l => l.type === 'out');
+        units.forEach(u => {
+            const usage = outLogs.filter(l => l.unitName === u.name).length;
+            if (usage > 10) {
+                insights.push({
+                    type: 'warning',
+                    text: `La unidad ${u.name} tiene una alta demanda (10+ servicios). Sugerimos rotación.`
+                });
+            }
+
+            // 2. Predictive Maintenance
+            const diffKm = u.km - (u.lastService || 0);
+            if (diffKm > 8000) {
+                insights.push({
+                    type: 'critical',
+                    text: `Alerta Predictiva: ${u.name} requiere servicio técnico en los próximos 500km.`
+                });
+            }
+        });
+
+        // 3. Document Expiry Agent
+        const expiringSoon = units.filter(u => {
+            const ins = new Date(u.insurance);
+            const diff = (ins - new Date()) / (1000 * 60 * 60 * 24);
+            return diff > 0 && diff < 15;
+        });
+
+        if (expiringSoon.length > 0) {
+            insights.push({
+                type: 'info',
+                text: `${expiringSoon.length} unidades tienen seguros por vencer en menos de 15 días.`
+            });
+        }
+
+        return insights;
+    },
+
+    renderPulse: () => {
+        const container = document.getElementById('ai-pulse-container');
+        const feed = document.getElementById('ai-insights-feed');
+        if (!container || !feed) return;
+
+        const insights = AI.getInsights();
+        if (insights.length === 0) {
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        feed.innerHTML = insights.map(i => `
+            <div class="insight-item insight-${i.type}">
+                <i class="fa-solid fa-${i.type === 'critical' ? 'triangle-exclamation' : (i.type === 'warning' ? 'circle-exclamation' : 'circle-info')}"></i>
+                ${i.text}
+            </div>
+        `).join('');
+    },
+
+    speak: (text) => {
+        if (!('speechSynthesis' in window)) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-MX';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    }
+};
+
+/**
+ * @section AI HUB UI LOGIC
+ */
+function toggleAgenticAI() {
+    const panel = document.getElementById('ai-hub-panel');
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) {
+        AI.renderPulse();
+    }
+}
+
+function askAI(topic) {
+    const responseEl = document.getElementById('ai-hub-response');
+    responseEl.classList.remove('hidden');
+    let msg = "";
+
+    if (topic === 'status') {
+        const busy = DB.data().units.filter(u => u.status === 'busy').length;
+        msg = `Actualmente tienes ${busy} unidades en ruta y ${DB.data().units.length - busy} disponibles. Todo parece bajo control.`;
+    } else if (topic === 'maintenance') {
+        const critical = DB.data().units.filter(u => (u.km - u.lastService) > 9000).length;
+        msg = critical > 0 ? `Atención: Tienes ${critical} unidades en estado crítico de mantenimiento. ¿Quieres que genere un reporte?` : "Toda la flota está al día con sus servicios.";
+    }
+
+    responseEl.innerText = msg;
+    AI.speak(msg);
+}
+
+// Intercept existing initAdmin to include AI Pulse
+const oldInitAdmin = initAdmin;
+initAdmin = function () {
+    oldInitAdmin();
+    AI.renderPulse();
+};
+
 // Export to window
+window.toggleAgenticAI = toggleAgenticAI;
+window.askAI = askAI;
+window.AI = AI;
 window.handleLogin = handleLogin;
 window.logout = logout;
 window.setAdminTab = setAdminTab;

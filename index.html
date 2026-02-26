@@ -119,6 +119,23 @@
                     style="height: 350px; width: 100%; border-radius: 8px; z-index: 0; background: #eee;"></div>
             </div>
 
+            <!-- AI INTELLIGENCE PULSE -->
+            <div id="ai-pulse-container" class="card glass-card hidden" style="border-left: 4px solid var(--accent); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: -20px; right: -20px; font-size: 5rem; color: rgba(255,171,0,0.05); transform: rotate(15deg);">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3 style="margin:0; color:var(--accent); display:flex; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-bolt-lightning"></i> Intelligence Pulse
+                    </h3>
+                    <span class="badge" style="background:var(--accent); color:var(--primary); font-weight:bold;">Real-time AI</span>
+                </div>
+                <div id="ai-insights-feed" style="display:flex; flex-direction:column; gap:10px;">
+                    <!-- Insights will be injected here by AI Engine -->
+                    <div class="skeleton" style="height:40px; width:100%; border-radius:8px;"></div>
+                </div>
+            </div>
+
             <div class="card">
                 <h3>Unidades en Operación</h3>
                 <div id="active-units-list"></div>
@@ -391,6 +408,29 @@
 
                 <button class="btn btn-success btn-block">Finalizar Servicio</button>
             </form>
+        </div>
+    </div>
+
+    <!-- AGENTIC AI HUB (ORBX) -->
+    <div id="ai-hub-orbx" class="ai-hub-container">
+        <div class="orbx-glow"></div>
+        <button class="orbx-btn" onclick="toggleAgenticAI()" title="AI Agent Hub">
+            <i class="fa-solid fa-brain"></i>
+        </button>
+        <div id="ai-hub-panel" class="ai-hub-panel hidden">
+            <div class="ai-hub-header">
+                <span><i class="fa-solid fa-microchip"></i> Agentic Intelligence</span>
+                <button onclick="toggleAgenticAI()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="ai-hub-content" class="ai-hub-content">
+                <p style="font-size: 0.8rem; opacity: 0.8;">¿En qué puedo ayudarte hoy?</p>
+                <div class="ai-hub-actions">
+                    <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
+                    <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
+                    <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+                </div>
+                <div id="ai-hub-response" class="ai-hub-response hidden"></div>
+            </div>
         </div>
     </div>
 
