@@ -471,7 +471,8 @@ async function handleCheckout(e) {
     // Auto WhatsApp Notification for Admin
     const adminPhone = localStorage.getItem('azi_admin_phone');
     if (adminPhone) {
-        const msg = `📢 SALIDA: ${units[idx].name} %0A👤 Operador: ${CURRENT_USER.name} %0A📍 Destino: ${dest} %0A⛽ Gas: ${fuel} %0A🛣️ KM: ${units[idx].km}`;
+        const mapsLink = coords ? `%0A📍 Ubicación: https://www.google.com/maps?q=${coords.lat},${coords.lng}` : '';
+        const msg = `*📢 SALIDA DE UNIDAD* %0A%0A*Unidad:* ${units[idx].name} %0A*👤 Operador:* ${CURRENT_USER.name} %0A*📍 Destino:* ${dest} %0A*⛽ Gas:* ${fuel} %0A*🛣️ KM:* ${units[idx].km}${mapsLink}`;
         window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
     }
 
@@ -512,19 +513,22 @@ async function handleCheckin(e) {
     // Auto WhatsApp Notification for Admin
     const adminPhone = localStorage.getItem('azi_admin_phone');
     if (adminPhone) {
-        const msg = `🏁 REGRESO: ${unit.name} %0A👤 Operador: ${CURRENT_USER.name} %0A🛣️ KM Final: ${km} %0A📝 Notas: ${document.getElementById('checkin-notes').value}`;
+        const mapsLink = coords ? `%0A📍 Ubicación: https://www.google.com/maps?q=${coords.lat},${coords.lng}` : '';
+        const msg = `*🏁 REGRESO DE UNIDAD* %0A%0A*Unidad:* ${unit.name} %0A*👤 Operador:* ${CURRENT_USER.name} %0A*🛣️ KM Final:* ${km} %0A*📝 Notas:* ${document.getElementById('checkin-notes').value || 'Sin novedades'}${mapsLink}`;
         window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
     }
 
     // Auto Email Report
     const adminEmail = localStorage.getItem('azi_admin_email');
     if (adminEmail && typeof emailjs !== 'undefined') {
+        const mapsUrl = coords ? `https://www.google.com/maps?q=${coords.lat},${coords.lng}` : 'No disponible';
         const templateParams = {
             to_email: adminEmail,
             unit: unit.name,
             operator: CURRENT_USER.name,
             km: km,
-            notes: document.getElementById('checkin-notes').value,
+            notes: document.getElementById('checkin-notes').value || 'Sin novedades',
+            maps_link: mapsUrl,
             date: new Date().toLocaleString()
         };
         emailjs.send('service_default', 'template_report', templateParams)
@@ -1126,7 +1130,7 @@ window.updateAIFields = updateAIFields;
 window.shareLogWA = (unit, user, km, type) => {
     const phone = localStorage.getItem('azi_admin_phone');
     if (!phone) return alert("Configura el teléfono de Admin en ajustes");
-    const m = `REPORTE: ${unit} | ${type === 'out' ? 'SALIDA' : 'ENTRADA'} %0AOperador: ${user} | KM: ${km}`;
+    const m = `*REPORTE DE FLOTA* %0A%0A*Unidad:* ${unit} %0A*Movimiento:* ${type === 'out' ? '🚀 SALIDA' : '🏁 ENTRADA'} %0A*Operador:* ${user} %0A*KM:* ${km}`;
     window.open(`https://wa.me/${phone}?text=${m}`, '_blank');
 };
 
