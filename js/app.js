@@ -864,21 +864,49 @@ const AI = {
         `).join('');
     },
 
-    speak: (text) => {
-        if (!('speechSynthesis' in window)) return;
-        const utterance = new SpeechSynthesisUtterance(text);
+    speak: async (text) => {
+        const key = localStorage.getItem('azi_ai_key');
+        const voice = localStorage.getItem('azi_ai_voice') || 'alloy';
 
-        // Try to find a more natural Spanish voice (Google Spanish is usually available)
+        if (key && key.startsWith('sk-')) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/audio/speech', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${key}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'tts-1',
+                        input: text,
+                        voice: voice
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const audio = new Audio(url);
+                    audio.play();
+                    return;
+                }
+            } catch (e) {
+                console.error("OpenAI TTS Error:", e);
+            }
+        }
+
+        // FALLBACK: Browser Voice
+        if (!('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
         const bestVoice = voices.find(v => v.lang.includes('es-MX') && v.name.includes('Google')) ||
             voices.find(v => v.lang.includes('es')) ||
             voices[0];
 
         if (bestVoice) utterance.voice = bestVoice;
-
         utterance.lang = 'es-MX';
-        utterance.rate = 1.0; // Slightly faster for natural flow
-        utterance.pitch = 1.0;
+        utterance.rate = 1.0;
         window.speechSynthesis.speak(utterance);
     }
 };
@@ -891,10 +919,36 @@ function toggleAgenticAI() {
     panel.classList.toggle('hidden');
     if (!panel.classList.contains('hidden')) {
         AI.renderPulse();
+        // Sync Settings UI
+        const keyInput = document.getElementById('ai-api-key');
+        const voiceSel = document.getElementById('ai-voice-preset');
+        if (keyInput) keyInput.value = localStorage.getItem('azi_ai_key') || '';
+        if (voiceSel) voiceSel.value = localStorage.getItem('azi_ai_voice') || 'alloy';
     }
 }
 
-function askAI(topic) {
+function toggleAISettings() {
+    const mainView = document.getElementById('ai-main-view');
+    const settingsView = document.getElementById('ai-settings-view');
+    if (mainView && settingsView) {
+        mainView.classList.toggle('hidden');
+        settingsView.classList.toggle('hidden');
+    }
+}
+
+function saveAISettings() {
+    const key = document.getElementById('ai-api-key').value.trim();
+    const voice = document.getElementById('ai-voice-preset').value;
+
+    localStorage.setItem('azi_ai_key', key);
+    localStorage.setItem('azi_ai_voice', voice);
+
+    alert('✅ Configuración de IA Guardada Correctamente.');
+    toggleAISettings();
+    AI.speak("Configuración de voz profesional actualizada.");
+}
+
+async function askAI(topic) {
     const responseEl = document.getElementById('ai-hub-response');
     responseEl.classList.remove('hidden');
     let msg = "";
@@ -908,7 +962,7 @@ function askAI(topic) {
     }
 
     responseEl.innerText = msg;
-    AI.speak(msg);
+    await AI.speak(msg);
 }
 
 // Intercept existing initAdmin to include AI Pulse

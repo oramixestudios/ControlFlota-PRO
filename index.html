@@ -120,15 +120,18 @@
             </div>
 
             <!-- AI INTELLIGENCE PULSE -->
-            <div id="ai-pulse-container" class="card glass-card hidden" style="border-left: 4px solid var(--accent); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: -20px; right: -20px; font-size: 5rem; color: rgba(255,171,0,0.05); transform: rotate(15deg);">
+            <div id="ai-pulse-container" class="card glass-card hidden"
+                style="border-left: 4px solid var(--accent); position: relative; overflow: hidden;">
+                <div
+                    style="position: absolute; top: -20px; right: -20px; font-size: 5rem; color: rgba(255,171,0,0.05); transform: rotate(15deg);">
                     <i class="fa-solid fa-brain"></i>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
                     <h3 style="margin:0; color:var(--accent); display:flex; align-items:center; gap:10px;">
                         <i class="fa-solid fa-bolt-lightning"></i> Intelligence Pulse
                     </h3>
-                    <span class="badge" style="background:var(--accent); color:var(--primary); font-weight:bold;">Real-time AI</span>
+                    <span class="badge"
+                        style="background:var(--accent); color:var(--primary); font-weight:bold;">Real-time AI</span>
                 </div>
                 <div id="ai-insights-feed" style="display:flex; flex-direction:column; gap:10px;">
                     <!-- Insights will be injected here by AI Engine -->
@@ -420,16 +423,56 @@
         <div id="ai-hub-panel" class="ai-hub-panel hidden">
             <div class="ai-hub-header">
                 <span><i class="fa-solid fa-microchip"></i> Agentic Intelligence</span>
-                <button onclick="toggleAgenticAI()" style="background:none; border:none; color:white; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button onclick="toggleAISettings()"
+                        style="background:none; border:none; color:white; cursor:pointer; opacity:0.7;"><i
+                            class="fa-solid fa-gear"></i></button>
+                    <button onclick="toggleAgenticAI()"
+                        style="background:none; border:none; color:white; cursor:pointer;"><i
+                            class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div id="ai-hub-content" class="ai-hub-content">
-                <p style="font-size: 0.8rem; opacity: 0.8;">¿En qué puedo ayudarte hoy?</p>
-                <div class="ai-hub-actions">
-                    <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
-                    <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
-                    <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+                <!-- MAIN VIEW -->
+                <div id="ai-main-view">
+                    <p style="font-size: 0.8rem; opacity: 0.8;">¿En qué puedo ayudarte hoy?</p>
+                    <div class="ai-hub-actions">
+                        <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
+                        <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
+                        <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+                    </div>
+                    <div id="ai-hub-response" class="ai-hub-response hidden"></div>
                 </div>
-                <div id="ai-hub-response" class="ai-hub-response hidden"></div>
+
+                <!-- SETTINGS VIEW -->
+                <div id="ai-settings-view" class="hidden">
+                    <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; color: var(--accent);">
+                        Configuración de Voz Pro
+                    </p>
+                    <label style="font-size: 0.7rem; opacity: 0.7;">OpenAI API Key:</label>
+                    <input type="password" id="ai-api-key" class="form-control"
+                        style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
+                        placeholder="sk-...">
+
+                    <label style="font-size: 0.7rem; opacity: 0.7;">Voz Personalizada:</label>
+                    <select id="ai-voice-preset" class="form-control"
+                        style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem;">
+                        <option value="alloy">Alloy (Neutral)</option>
+                        <option value="nova">Nova (Femenina Enérgica)</option>
+                        <option value="shimmer">Shimmer (Femenina Suave)</option>
+                        <option value="echo">Echo (Masculina Profunda)</option>
+                        <option value="onyx">Onyx (Masculina Autoritaria)</option>
+                    </select>
+
+                    <button class="btn btn-primary btn-block" onclick="saveAISettings()"
+                        style="font-size: 0.8rem; background: var(--accent); color: var(--primary);">
+                        Guardar Configuración
+                    </button>
+                    <button class="btn btn-block" onclick="toggleAISettings()"
+                        style="font-size: 0.7rem; background: transparent; color: white; opacity: 0.5;">
+                        &larr; Volver
+                    </button>
+                </div>
             </div>
         </div>
     </div>
