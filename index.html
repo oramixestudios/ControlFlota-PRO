@@ -283,6 +283,13 @@
                         </div>
                         <label>Vigencia de Licencia:</label>
                         <input type="date" id="new-lic-date" class="form-control" required>
+
+                        <label>Foto de Perfil (Maestra/Face-ID):</label>
+                        <input type="file" id="new-profile-photo" accept="image/*" class="form-control"
+                            onchange="compressImage(this, 'new-user-preview')">
+                        <img id="new-user-preview" class="hidden"
+                            style="width:80px; height:80px; object-fit:cover; border-radius:50%; border:2px solid var(--accent); margin-bottom:1rem;">
+
                         <button class="btn btn-primary btn-block">Crear Cuenta de Acceso</button>
                     </form>
                 </div>
@@ -371,6 +378,14 @@
                 <label>Evidencia Visual (Opcional):</label>
                 <input type="file" id="checkout-photo" accept="image/*" capture="environment" class="form-control"
                     onchange="compressImage(this, 'checkout-preview')">
+
+                <!-- Face-ID Status Box -->
+                <div id="checkout-face-status" class="alert-box hidden"
+                    style="background:#333; color:white; margin-bottom:1rem; border-left:4px solid var(--accent);">
+                    <i class="fa-solid fa-face-smile"></i>&nbsp;&nbsp;
+                    <span id="checkout-face-text">Verificando Identidad...</span>
+                </div>
+
                 <img id="checkout-preview" class="hidden"
                     style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
 
@@ -413,6 +428,14 @@
                 <label>Evidencia de Termino:</label>
                 <input type="file" id="checkin-photo" accept="image/*" capture="environment" class="form-control"
                     onchange="compressImage(this, 'checkin-preview')">
+
+                <!-- Face-ID Status Box -->
+                <div id="checkin-face-status" class="alert-box hidden"
+                    style="background:#333; color:white; margin-bottom:1rem; border-left:4px solid var(--accent);">
+                    <i class="fa-solid fa-face-smile"></i>&nbsp;&nbsp;
+                    <span id="checkin-face-text">Verificando Identidad...</span>
+                </div>
+
                 <img id="checkin-preview" class="hidden"
                     style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
 
