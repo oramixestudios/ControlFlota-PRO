@@ -1213,9 +1213,36 @@ async function generatePDFReport() {
     doc.text(`En Ruta: ${data.units.filter(u => u.status === 'busy').length}`, 20, 52);
     doc.text(`Alertas de Servicio: ${data.units.filter(u => (u.km - u.lastService) > 9000).length}`, 20, 59);
 
+    // --- VISUAL CHARTS SECTION ---
+    doc.setFontSize(14);
+    doc.setTextColor(30, 136, 229);
+    doc.text("Analítica Visual", 14, 75);
+
+    try {
+        // Capture Chart 1: Status/Usage (Recycled IDs from Admin Panel)
+        const canvas1 = document.getElementById('chart-usage');
+        if (canvas1) {
+            const imgData1 = canvas1.toDataURL('image/png');
+            doc.setFontSize(10);
+            doc.text("Distribución de Uso por Unidad", 14, 82);
+            doc.addImage(imgData1, 'PNG', 14, 85, 90, 60);
+        }
+
+        const canvas2 = document.getElementById('chart-lic');
+        if (canvas2) {
+            const imgData2 = canvas2.toDataURL('image/png');
+            doc.setFontSize(10);
+            doc.text("Estatus de Documentación y Licencias", 110, 82);
+            doc.addImage(imgData2, 'PNG', 110, 85, 80, 50);
+        }
+    } catch (e) {
+        console.error("PDF Chart Capture Error:", e);
+    }
+
     // Units Table
     doc.setFontSize(14);
-    doc.text("Estado de la Flota", 14, 75);
+    doc.setTextColor(30, 136, 229);
+    doc.text("Estado de la Flota Detallado", 14, 155);
 
     const unitRows = data.units.map(u => [u.name, u.plate, `${u.km} KM`, u.status === 'available' ? 'Disponible' : 'En Ruta', `${u.km - u.lastService} KM`]);
     doc.autoTable({
@@ -1250,7 +1277,7 @@ async function generatePDFReport() {
     doc.text(splitText, 14, finalY + 28);
 
     doc.save(`Reporte_Flota_${new Date().toISOString().slice(0, 10)}.pdf`);
-    AI.speak("El reporte PDF ha sido descargado.");
+    AI.speak("El reporte PDF con analítica visual ha sido generado y descargado automágicamente.");
 }
 
 // Intercept existing initAdmin to include AI Pulse
