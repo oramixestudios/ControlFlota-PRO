@@ -230,7 +230,32 @@ function renderCharts() {
     setTimeout(renderMap, 300);
     renderMaintenanceAlerts();
 }
+function renderMaintenanceAlerts() {
+    const list = document.getElementById('maintenance-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const today = new Date();
+    const oneMonthSoon = new Date();
+    oneMonthSoon.setMonth(today.getMonth() + 1);
 
+    DB.data().units.forEach(u => {
+        const diffKm = u.km - (u.lastService || 0);
+        let status = '<span style="color:var(--success)">En Orden</span>';
+        if (diffKm > 5000) status = '<span style="color:var(--warning)">Cambio Aceite</span>';
+        if (diffKm > 10000) status = '<span style="color:var(--danger)">Servicio Mayor</span>';
+
+        const insDate = new Date(u.insurance);
+        const verDate = new Date(u.verification);
+        let docAlerts = '';
+        if (insDate < today) docAlerts += '<br><small style="color:var(--danger)">⚠️ Seguro Vencido</small>';
+        else if (insDate < oneMonthSoon) docAlerts += '<br><small style="color:var(--warning)">📅 Seguro por Vencer</small>';
+        if (verDate < today) docAlerts += '<br><small style="color:var(--danger)">⚠️ Verificación Vencida</small>';
+        else if (verDate < oneMonthSoon) docAlerts += '<br><small style="color:var(--warning)">📅 Verificación Próxima</small>';
+
+        list.innerHTML += `<div style="padding:0.8rem; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+            <div><strong>${u.name}</strong> <small style="color:var(--gray)">(${diffKm} km uso)</small>${docAlerts}</div>
+            <div style="font-weight:bold;">${status}</div>
+        </div>`;
     });
 }
 
