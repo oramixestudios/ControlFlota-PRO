@@ -895,6 +895,7 @@ const AI = {
                 try {
                     const response = await fetch(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${googleKey}`, {
                         method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             input: { text: text },
                             voice: { languageCode: 'es-MX', name: googleVoice },
@@ -906,8 +907,10 @@ const AI = {
                         const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
                         audio.play();
                         return;
+                    } else {
+                        console.error("Google TTS Response Error:", data);
                     }
-                } catch (e) { console.error("Google TTS Error:", e); }
+                } catch (e) { console.error("Google TTS Fetch Error:", e); }
             }
         }
 
