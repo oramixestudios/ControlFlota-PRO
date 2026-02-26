@@ -231,31 +231,63 @@ function renderCharts() {
     renderMaintenanceAlerts();
 }
 
-function renderMaintenanceAlerts() {
-    const list = document.getElementById('maintenance-list');
+    });
+}
+
+function renderUsers() {
+    const list = document.getElementById('users-list');
     if (!list) return;
     list.innerHTML = '';
-    const today = new Date();
-    const oneMonthSoon = new Date();
-    oneMonthSoon.setMonth(today.getMonth() + 1);
+    DB.data().users.filter(u => u.role === 'user').forEach(u => {
+        list.innerHTML += `
+        <div style="padding:1rem; border:1px solid #eee; margin-bottom:0.8rem; border-radius:12px; display:flex; justify-content:space-between; align-items:center; background:#fff;">
+            <div>
+                <strong style="color:var(--primary);">${u.name}</strong><br>
+                <small style="color:#888;">${u.id} | ${u.whatsapp || 'Sin Tel.'}</small><br>
+                <small style="color:${new Date(u.licDate) < new Date() ? 'var(--danger)' : 'var(--success)'}">
+                    Licencia: ${u.licDate}
+                </small>
+            </div>
+            <button class="btn btn-outline" style="color:var(--danger); border:none;" onclick="deleteUser('${u.id}')">
+                <i class="fa-solid fa-user-minus"></i>
+            </button>
+        </div>`;
+    });
+}
 
-    DB.data().units.forEach(u => {
-        const diffKm = u.km - (u.lastService || 0);
-        let status = '<span style="color:var(--success)">En Orden</span>';
-        if (diffKm > 5000) status = '<span style="color:var(--warning)">Cambio Aceite</span>';
-        if (diffKm > 10000) status = '<span style="color:var(--danger)">Servicio Mayor</span>';
+function renderHistory() {
+    const list = document.getElementById('logs-list');
+    if (!list) return;
+    list.innerHTML = '';
+    DB.data().logs.slice(0, 50).forEach(l => {
+        const isOut = l.type === 'out';
+        list.innerHTML += `
+        <div style="padding:1rem; border-left:4px solid ${isOut ? '#1e88e5' : '#43a047'}; background:#fff; margin-bottom:0.5rem; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>${l.unitName}</strong>
+                <small style="color:#888;">${new Date(l.date).toLocaleString()}</small>
+            </div>
+            <div style="font-size:0.9rem;">
+                <span style="color:#666;">Usuario:</span> ${l.user} | 
+                <span style="color:#666;">KM:</span> ${l.km}
+            </div>
+            <div style="font-size:0.8rem; font-style:italic; color:#888; margin-top:5px;">${l.notes || ''}</div>
+        </div>`;
+    });
+}
 
-        const insDate = new Date(u.insurance);
-        const verDate = new Date(u.verification);
-        let docAlerts = '';
-        if (insDate < today) docAlerts += '<br><small style="color:var(--danger)">⚠️ Seguro Vencido</small>';
-        else if (insDate < oneMonthSoon) docAlerts += '<br><small style="color:var(--warning)">📅 Seguro por Vencer</small>';
-        if (verDate < today) docAlerts += '<br><small style="color:var(--danger)">⚠️ Verificación Vencida</small>';
-        else if (verDate < oneMonthSoon) docAlerts += '<br><small style="color:var(--warning)">📅 Verificación Próxima</small>';
-
-        list.innerHTML += `<div style="padding:0.8rem; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-            <div><strong>${u.name}</strong> <small style="color:var(--gray)">(${diffKm} km uso)</small>${docAlerts}</div>
-            <div style="font-weight:bold;">${status}</div>
+function renderUserLogs() {
+    const list = document.getElementById('user-recent-logs');
+    if (!list) return;
+    list.innerHTML = '';
+    DB.data().logs.filter(l => l.user === CURRENT_USER.name).slice(0, 10).forEach(l => {
+        list.innerHTML += `
+        <div style="padding:0.8rem; border-bottom:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between;">
+                <strong>${l.unitName}</strong>
+                <small>${new Date(l.date).toLocaleDateString()}</small>
+            </div>
+            <small style="color:#888;">${l.type === 'out' ? 'Salida' : 'Entrega'} - ${l.km} km</small>
         </div>`;
     });
 }
@@ -810,8 +842,18 @@ const AI = {
     speak: (text) => {
         if (!('speechSynthesis' in window)) return;
         const utterance = new SpeechSynthesisUtterance(text);
+
+        // Try to find a more natural Spanish voice (Google Spanish is usually available)
+        const voices = window.speechSynthesis.getVoices();
+        const bestVoice = voices.find(v => v.lang.includes('es-MX') && v.name.includes('Google')) ||
+            voices.find(v => v.lang.includes('es')) ||
+            voices[0];
+
+        if (bestVoice) utterance.voice = bestVoice;
+
         utterance.lang = 'es-MX';
-        utterance.rate = 0.9;
+        utterance.rate = 1.0; // Slightly faster for natural flow
+        utterance.pitch = 1.0;
         window.speechSynthesis.speak(utterance);
     }
 };
