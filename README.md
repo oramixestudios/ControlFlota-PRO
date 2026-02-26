@@ -1,4 +1,4 @@
-# Control Flota PRO 🚛💨
+# Control Flota PRO
 > **Professional Fleet Management System** | Optimized for Logistics and Field Operations.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,7 +9,7 @@
 
 ---
 
-## 🇪🇸 Características Principales (Español)
+## Características Principales (Español)
 
 - **Panel de Control Proactivo**: Visualización de flota en tiempo real mediante mapas integrados (Leaflet).
 - **Asistente de Voz Inteligente**: Permite el registro de salidas y entradas mediante comandos de voz naturales.
@@ -21,7 +21,7 @@
 
 ---
 
-## 🇺🇸 Key Features (English)
+## Key Features (English)
 
 - **Proactive Admin Dashboard**: Real-time fleet visualization using integrated maps (Leaflet).
 - **Smart Voice Assistant**: Complete checkout and check-in processes using natural voice commands.
@@ -33,7 +33,7 @@
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: Vanilla JavaScript (ES6+), Modern HTML5, Custom CSS3 Variables.
 - **Data Visualization**: [Chart.js](https://www.chartjs.org/)
@@ -44,7 +44,7 @@
 
 ---
 
-## 🚀 Getting Started / Guía de Inicio
+## Getting Started / Guía de Inicio
 
 1. **Clone the repository**:
    ```bash
@@ -59,7 +59,7 @@
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 | Login & Security | Admin Dashboard | Driver Operations |
 | :--- | :--- | :--- |
@@ -67,8 +67,8 @@
 
 ---
 
-## 📄 License
+## License
 This project is open-source and available under the **MIT License**.
 
 ---
-*Developed with ❤️ for high-performance logistic teams.*
+*Developed for high-performance logistic teams.*
