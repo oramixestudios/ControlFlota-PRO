@@ -938,13 +938,39 @@ function toggleAgenticAI() {
     panel.classList.toggle('hidden');
     if (!panel.classList.contains('hidden')) {
         AI.renderPulse();
-        // Sync Settings UI
-        document.getElementById('ai-provider').value = localStorage.getItem('azi_ai_provider') || 'browser';
-        document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
-        document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
-        document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
-        document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
-        updateAIFields();
+        renderAIHubActions();
+
+        // Sync Settings UI (Only if Admin)
+        if (currentUser && currentUser.role === 'admin') {
+            document.getElementById('ai-provider').value = localStorage.getItem('azi_ai_provider') || 'browser';
+            document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
+            document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
+            document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
+            document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
+            updateAIFields();
+        }
+    }
+}
+
+function renderAIHubActions() {
+    const container = document.getElementById('ai-hub-actions');
+    const settingsBtn = document.querySelector('[onclick="toggleAISettings()"]');
+    if (!container) return;
+
+    if (currentUser && currentUser.role === 'admin') {
+        if (settingsBtn) settingsBtn.classList.remove('hidden');
+        container.innerHTML = `
+            <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
+            <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
+            <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+        `;
+    } else {
+        if (settingsBtn) settingsBtn.classList.add('hidden');
+        container.innerHTML = `
+            <button class="btn-ai-action" onclick="askAI('technical')">Ayuda Técnica</button>
+            <button class="btn-ai-action" onclick="askAI('form_help')">Guía de Formulario</button>
+            <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+        `;
     }
 }
 
@@ -991,6 +1017,10 @@ async function askAI(topic) {
     } else if (topic === 'maintenance') {
         const critical = DB.data().units.filter(u => (u.km - u.lastService) > 9000).length;
         msg = critical > 0 ? `Atención: Tienes ${critical} unidades en estado crítico de mantenimiento. ¿Quieres que genere un reporte?` : "Toda la flota está al día con sus servicios.";
+    } else if (topic === 'technical') {
+        msg = "Bienvenido al soporte técnico. Puedes registrar salidas escaneando el código QR de la unidad o seleccionándola manualmente en la lista de 'Unidades'. Para cualquier error, contacta a tu administrador.";
+    } else if (topic === 'form_help') {
+        msg = "Para llenar el formulario: 1. Asegúrate de que el kilometraje sea mayor al anterior. 2. Selecciona tu nombre en la lista de operarios. 3. Describe cualquier anomalía en el campo de texto.";
     }
 
     responseEl.innerText = msg;
@@ -1002,6 +1032,7 @@ const oldInitAdmin = initAdmin;
 initAdmin = function () {
     oldInitAdmin();
     AI.renderPulse();
+    renderAIHubActions();
 };
 
 // Export to window
@@ -1033,7 +1064,10 @@ window.registerBiometric = registerBiometric;
 window.handleBioLogin = handleBioLogin;
 window.renderResults = renderCharts;
 window.renderCharts = renderCharts;
+window.toggleAISettings = toggleAISettings;
+window.saveAISettings = saveAISettings;
+window.updateAIFields = updateAIFields;
 
-console.log("Control Flota PRO Loaded - GitHub Ready");
+console.log("Control Flota PRO Loaded - Role-Based Hub Ready");
 
 
