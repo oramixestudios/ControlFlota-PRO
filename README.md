@@ -11,24 +11,26 @@
 
 ## Características Principales (Español)
 
-- **Panel de Control Proactivo**: Visualización de flota en tiempo real mediante mapas integrados (Leaflet).
-- **Asistente de Voz Inteligente**: Permite el registro de salidas y entradas mediante comandos de voz naturales.
-- **Autenticación Biométrica**: Acceso seguro mediante huella dactilar o reconocimiento facial (WebAuthn).
-- **Escaneo QR Moderno**: Identificación rápida de unidades y gafetes de personal mediante QR.
-- **Mantenimiento Preventivo**: Sistema de alertas automáticas basadas en kilometraje y vigencia de documentos (Seguro/Verificación).
-- **Reportes Dinámicos**: Gráficas de rendimiento (Chart.js) y exportación de bitácoras en formato CSV.
-- **Modo Offline**: Capacidad de funcionamiento sin conexión mediante almacenamiento local persistente.
+- **Panel de Control Administrativo**: Visualización de la flota en tiempo real mediante mapas integrados (Leaflet) y analítica avanzada.
+- **Asistente de Voz Inteligente**: Procesamiento de lenguaje natural para registro de salidas y entradas mediante comandos de voz.
+- **Seguridad Biométrica Avanzada**: Acceso y validación mediante huella dactilar, biometría facial (Face-ID) y WebAuthn.
+- **Visión Artificial (OCR)**: Lectura automatizada de odómetros mediante reconocimiento óptico de caracteres para reducir errores de captura.
+- **Reportes Ejecutivos PDF**: Generación de informes profesionales con gráficas y análisis de datos integrados.
+- **Comunicación Integrada**: Alertas automáticas vía WhatsApp y correo electrónico (EmailJS) para eventos críticos.
+- **Mantenimiento Predictivo**: Algoritmos de análisis para la proyección de servicios técnicos basados en patrones de uso.
+- **Modo Offline**: Funcionamiento ininterrumpido sin conexión mediante almacenamiento local persistente.
 
 ---
 
 ## Key Features (English)
 
-- **Proactive Admin Dashboard**: Real-time fleet visualization using integrated maps (Leaflet).
-- **Smart Voice Assistant**: Complete checkout and check-in processes using natural voice commands.
-- **Biometric Authentication**: Secure access via fingerprint or facial recognition (WebAuthn).
-- **Modern QR Scanning**: Fast identification of vehicles and staff badges via QR technology.
-- **Predictive Maintenance**: Automatic alert system based on mileage and document validity (Insurance/Inspection).
-- **Dynamic Analytics**: Performance visualizations (Chart.js) and master log export to CSV.
+- **Administrative Control Panel**: Real-time fleet visualization with integrated maps and advanced analytics.
+- **Smart Voice Assistant**: Natural language processing for unit checkouts and check-ins via voice commands.
+- **Advanced Biometric Security**: Secure access and validation via fingerprint, facial recognition (Face-ID), and WebAuthn.
+- **Computer Vision (OCR)**: Automated odometer reading using optical character recognition to minimize data entry errors.
+- **Executive PDF Reporting**: Generation of professional documents with integrated charts and data analysis.
+- **Integrated Communication**: Automated WhatsApp and Email (EmailJS) alerts for critical operations.
+- **Predictive Maintenance**: Analysis algorithms for technical service projections based on usage patterns.
 - **Offline Capabilities**: Full functionality without internet connection via persistent local storage.
 
 ---
@@ -36,11 +38,13 @@
 ## Technology Stack
 
 - **Frontend**: Vanilla JavaScript (ES6+), Modern HTML5, Custom CSS3 Variables.
+- **Computer Vision**: [OpenAI Vision API](https://openai.com/) / [Tesseract.js](https://tesseract.projectnaptha.com/)
 - **Data Visualization**: [Chart.js](https://www.chartjs.org/)
+- **Document Generation**: [jsPDF](https://github.com/parallax/jsPDF)
 - **Mapping**: [Leaflet.js](https://leafletjs.com/)
 - **QR Support**: [Html5-QRCode](https://github.com/mebjas/html5-qrcode)
-- **Voice Engine**: Web Speech API (Native)
-- **Security**: WebAuthn API for Biometrics.
+- **Voice Engine**: [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) / Web Speech API (Native)
+- **Security**: WebAuthn API / AI Biometrics.
 
 ---
 
@@ -48,22 +52,14 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/control-flota-pro.git
+   git clone https://github.com/oramixestudios/ControlFlota-PRO.git
    ```
 2. **Open the project**:
    Simply open `index.html` in any modern browser (Chrome, Edge, or Safari).
-   *Note: Biometric features and GPS require a secure context (HTTPS/Localhost).*
+   *Note: Biometric features, OCR, and GPS require a secure context (HTTPS/Localhost).*
 
 3. **Try the Demo Data**:
-   Navigate to the **Dashboard** and use the **"Simular Historial"** tool to populate the app with 30 days of professional activity data.
-
----
-
-## Screenshots
-
-| Login & Security | Admin Dashboard | Driver Operations |
-| :--- | :--- | :--- |
-| ![Login UI](screenshots/login_ui.png) | ![Admin View](screenshots/admin_view.png) | ![User View](screenshots/user_view.png) |
+   Navigate to the **Dashboard** and use the **"Simular Historial"** tool to populate the app with professional activity data.
 
 ---
 
