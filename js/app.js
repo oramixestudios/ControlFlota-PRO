@@ -78,7 +78,8 @@ function handleLogin(e) {
     const found = users.find(x => x.id === u && x.pass === p);
 
     if (found) {
-        window.currentUser = found; // Ensure it matches the global expected by toggleAgenticAI
+        CURRENT_USER = found;
+        window.currentUser = found; // Backward compatibility with recent edits
         showScreen('hidden');
         if (found.role === 'admin') initAdmin();
         else initUser();
@@ -787,9 +788,11 @@ async function handleBioLogin() {
         const assertion = await navigator.credentials.get({ publicKey: { challenge, timeout: 60000, userVerification: "required" } });
         if (assertion) {
             const users = DB.data().users;
-            window.currentUser = users[0]; // Simplified for mock
+            CURRENT_USER = users.find(u => u.bioId === bufToStr(assertion.rawId));
+            if (!CURRENT_USER) return alert('Error de autenticación biométrica.');
+            window.currentUser = CURRENT_USER;
             document.getElementById('qr-login-reader').classList.add('hidden');
-            if (window.currentUser.role === 'admin') initAdmin();
+            if (CURRENT_USER.role === 'admin') initAdmin();
             else initUser();
 
             // Trigger initial AI Hub Action rendering
@@ -942,7 +945,7 @@ function toggleAgenticAI() {
         renderAIHubActions();
 
         // Sync Settings UI (Only if Admin)
-        if (currentUser && currentUser.role === 'admin') {
+        if (CURRENT_USER && CURRENT_USER.role === 'admin') {
             document.getElementById('ai-provider').value = localStorage.getItem('azi_ai_provider') || 'browser';
             document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
             document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
@@ -958,14 +961,14 @@ function renderAIHubActions() {
     const settingsBtn = document.querySelector('[onclick="toggleAISettings()"]');
     if (!container) return;
 
-    if (currentUser && currentUser.role === 'admin') {
+    if (CURRENT_USER && CURRENT_USER.role === 'admin') {
         if (settingsBtn) settingsBtn.classList.remove('hidden');
         container.innerHTML = `
             <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
             <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
             <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
         `;
-    } else {
+    } else if (CURRENT_USER) {
         if (settingsBtn) settingsBtn.classList.add('hidden');
         container.innerHTML = `
             <button class="btn-ai-action" onclick="askAI('technical')">Ayuda Técnica</button>
