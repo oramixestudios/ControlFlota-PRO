@@ -65,6 +65,11 @@ DB.init();
 /**
  * @section SESSION & AUTH
  */
+// Initialize EmailJS (Requires User ID from EmailJS Dashboard)
+if (typeof emailjs !== 'undefined') {
+    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Placeholder, user will need to update
+}
+
 let CURRENT_USER = null;
 let CHART_LIC = null, CHART_USAGE = null, CHART_USER_ACT = null;
 let mapInstance = null;
@@ -307,6 +312,12 @@ function renderHistory() {
                 <span style="color:#666;">KM:</span> ${l.km}
             </div>
             <div style="font-size:0.8rem; font-style:italic; color:#888; margin-top:5px;">${l.notes || ''}</div>
+            <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                <button onclick="shareLogWA('${l.unitName}', '${l.user}', '${l.km}', '${l.type}')" 
+                    style="background:#25d366; color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.75rem; cursor:pointer;">
+                    <i class="fa-brands fa-whatsapp"></i> Compartir
+                </button>
+            </div>
         </div>`;
     });
 }
@@ -456,6 +467,14 @@ async function handleCheckout(e) {
     });
 
     alert('Salida Confirmada');
+
+    // Auto WhatsApp Notification for Admin
+    const adminPhone = localStorage.getItem('azi_admin_phone');
+    if (adminPhone) {
+        const msg = `📢 SALIDA: ${units[idx].name} %0A👤 Operador: ${CURRENT_USER.name} %0A📍 Destino: ${dest} %0A⛽ Gas: ${fuel} %0A🛣️ KM: ${units[idx].km}`;
+        window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
+    }
+
     initUser();
 }
 
@@ -489,6 +508,30 @@ async function handleCheckin(e) {
 
     sendNotification('Vehículo Entregado', `${unit.name} recibido.`);
     alert('Entrega Finalizada Correctamente');
+
+    // Auto WhatsApp Notification for Admin
+    const adminPhone = localStorage.getItem('azi_admin_phone');
+    if (adminPhone) {
+        const msg = `🏁 REGRESO: ${unit.name} %0A👤 Operador: ${CURRENT_USER.name} %0A🛣️ KM Final: ${km} %0A📝 Notas: ${document.getElementById('checkin-notes').value}`;
+        window.open(`https://wa.me/${adminPhone}?text=${msg}`, '_blank');
+    }
+
+    // Auto Email Report
+    const adminEmail = localStorage.getItem('azi_admin_email');
+    if (adminEmail && typeof emailjs !== 'undefined') {
+        const templateParams = {
+            to_email: adminEmail,
+            unit: unit.name,
+            operator: CURRENT_USER.name,
+            km: km,
+            notes: document.getElementById('checkin-notes').value,
+            date: new Date().toLocaleString()
+        };
+        emailjs.send('service_default', 'template_report', templateParams)
+            .then(() => console.log('Email Sent'))
+            .catch(err => console.error('Email Failed', err));
+    }
+
     initUser();
 }
 
@@ -953,6 +996,8 @@ function toggleAgenticAI() {
                 document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
                 document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
                 document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
+                document.getElementById('ai-admin-phone').value = localStorage.getItem('azi_admin_phone') || '';
+                document.getElementById('ai-admin-email').value = localStorage.getItem('azi_admin_email') || '';
                 updateAIFields();
             }
         }
@@ -1008,7 +1053,10 @@ function saveAISettings() {
         localStorage.setItem('azi_ai_google_voice', document.getElementById('ai-google-voice').value);
     }
 
-    alert('✅ Configuración de IA Guardada Correctamente.');
+    localStorage.setItem('azi_admin_phone', document.getElementById('ai-admin-phone').value.trim());
+    localStorage.setItem('azi_admin_email', document.getElementById('ai-admin-email').value.trim());
+
+    alert('✅ Configuración de IA y Notificaciones Guardada.');
     toggleAISettings();
     AI.speak("Configuración de IA actualizada.");
 }
@@ -1074,6 +1122,13 @@ window.renderCharts = renderCharts;
 window.toggleAISettings = toggleAISettings;
 window.saveAISettings = saveAISettings;
 window.updateAIFields = updateAIFields;
+
+window.shareLogWA = (unit, user, km, type) => {
+    const phone = localStorage.getItem('azi_admin_phone');
+    if (!phone) return alert("Configura el teléfono de Admin en ajustes");
+    const m = `REPORTE: ${unit} | ${type === 'out' ? 'SALIDA' : 'ENTRADA'} %0AOperador: ${user} | KM: ${km}`;
+    window.open(`https://wa.me/${phone}?text=${m}`, '_blank');
+};
 
 console.log("Control Flota PRO Loaded - Role-Based Hub Ready");
 

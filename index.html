@@ -490,6 +490,22 @@
                         </select>
                     </div>
 
+                    <div id="field-comm"
+                        style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 10px; padding-top: 10px;">
+                        <p style="font-size: 0.7rem; font-weight: bold; margin-bottom: 8px; color: #3ae374;">
+                            Notificaciones Admin</p>
+
+                        <label style="font-size: 0.7rem; opacity: 0.7;">WhatsApp Admin (Ej. 52199...):</label>
+                        <input type="text" id="ai-admin-phone" class="form-control"
+                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
+                            placeholder="521...">
+
+                        <label style="font-size: 0.7rem; opacity: 0.7;">Correo Reportes:</label>
+                        <input type="email" id="ai-admin-email" class="form-control"
+                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
+                            placeholder="admin@ejemplo.com">
+                    </div>
+
                     <button class="btn btn-primary btn-block" onclick="saveAISettings()"
                         style="font-size: 0.8rem; background: var(--accent); color: var(--primary); margin-top: 10px;">
                         Guardar Configuración
@@ -503,8 +519,13 @@
         </div>
     </div>
 
+    <!-- SDKs & External Libs -->
+    <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
     <!-- App Logic -->
-    <script src="./js/app.js?v=4"></script>
+    <script src="./js/app.js?v=5"></script>
 </body>
 
 </html>/ /   F o r c e   U p d a t e   2 
