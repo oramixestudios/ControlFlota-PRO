@@ -946,12 +946,15 @@ function toggleAgenticAI() {
 
         // Sync Settings UI (Only if Admin)
         if (CURRENT_USER && CURRENT_USER.role === 'admin') {
-            document.getElementById('ai-provider').value = localStorage.getItem('azi_ai_provider') || 'browser';
-            document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
-            document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
-            document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
-            document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
-            updateAIFields();
+            const prov = document.getElementById('ai-provider');
+            if (prov) {
+                prov.value = localStorage.getItem('azi_ai_provider') || 'browser';
+                document.getElementById('ai-api-key').value = localStorage.getItem('azi_ai_key') || '';
+                document.getElementById('ai-voice-preset').value = localStorage.getItem('azi_ai_voice') || 'alloy';
+                document.getElementById('ai-google-key').value = localStorage.getItem('azi_ai_google_key') || '';
+                document.getElementById('ai-google-voice').value = localStorage.getItem('azi_ai_google_voice') || 'es-MX-Neural2-A';
+                updateAIFields();
+            }
         }
     }
 }

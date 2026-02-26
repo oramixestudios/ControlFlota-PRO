@@ -415,7 +415,7 @@
     </div>
 
     <!-- AGENTIC AI HUB (ORBX) -->
-    <div id="ai-hub-orbx" class="ai-hub-container">
+    <div id="ai-hub-orbx" class="ai-hub-container hidden">
         <div class="orbx-glow"></div>
         <button class="orbx-btn" onclick="toggleAgenticAI()" title="AI Agent Hub">
             <i class="fa-solid fa-brain"></i>
@@ -436,7 +436,7 @@
                 <!-- MAIN VIEW -->
                 <div id="ai-main-view">
                     <p style="font-size: 0.8rem; opacity: 0.8;">¿En qué puedo ayudarte hoy?</p>
-                    <div class="ai-hub-actions">
+                    <div id="ai-hub-actions" class="ai-hub-actions">
                         <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
                         <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
                         <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
@@ -504,7 +504,7 @@
     </div>
 
     <!-- App Logic -->
-    <script src="./js/app.js?v=3"></script>
+    <script src="./js/app.js?v=4"></script>
 </body>
 
 </html>/ /   F o r c e   U p d a t e   2 
