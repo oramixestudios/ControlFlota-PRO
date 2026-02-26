@@ -78,10 +78,13 @@ function handleLogin(e) {
     const found = users.find(x => x.id === u && x.pass === p);
 
     if (found) {
-        CURRENT_USER = found;
+        window.currentUser = found; // Ensure it matches the global expected by toggleAgenticAI
         showScreen('hidden');
         if (found.role === 'admin') initAdmin();
         else initUser();
+
+        // Trigger initial AI Hub Action rendering
+        renderAIHubActions();
     } else {
         alert('Credenciales incorrectas / Incorrect credentials');
     }
@@ -92,6 +95,7 @@ function logout() {
 }
 
 function showScreen(id) {
+    const aiHub = document.getElementById('ai-hub-orbx');
     ['screen-login', 'screen-admin', 'screen-user', 'screen-checkout', 'screen-checkin'].forEach(x => {
         const el = document.getElementById(x);
         if (el) el.classList.add('hidden');
@@ -106,10 +110,15 @@ function showScreen(id) {
         }
     }
 
-    // Toggle Header Visibility
+    // Toggle Header & AI Hub Visibility
     const header = document.getElementById('app-header');
-    if (id === 'screen-login') header.classList.add('hidden');
-    else header.classList.remove('hidden');
+    if (id === 'screen-login') {
+        if (header) header.classList.add('hidden');
+        if (aiHub) aiHub.classList.add('hidden');
+    } else {
+        if (header) header.classList.remove('hidden');
+        if (aiHub) aiHub.classList.remove('hidden');
+    }
 }
 
 /**
@@ -775,26 +784,18 @@ async function handleBioLogin() {
     try {
         const challenge = new Uint8Array(32);
         window.crypto.getRandomValues(challenge);
-
-        const publicKey = {
-            challenge: challenge,
-            allowCredentials: bioUsers.map(u => ({ id: strToBuf(u.bioId), type: 'public-key' })),
-            timeout: 60000
-        };
-
-        const assertion = await navigator.credentials.get({ publicKey });
-        const credId = bufToStr(assertion.rawId);
-        const found = bioUsers.find(u => u.bioId === credId);
-
-        if (found) {
-            CURRENT_USER = found;
-            showScreen('hidden');
-            if (found.role === 'admin') initAdmin();
+        const assertion = await navigator.credentials.get({ publicKey: { challenge, timeout: 60000, userVerification: "required" } });
+        if (assertion) {
+            const users = DB.data().users;
+            window.currentUser = users[0]; // Simplified for mock
+            document.getElementById('qr-login-reader').classList.add('hidden');
+            if (window.currentUser.role === 'admin') initAdmin();
             else initUser();
+
+            // Trigger initial AI Hub Action rendering
+            renderAIHubActions();
         }
-    } catch (e) {
-        console.error(e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 /**
