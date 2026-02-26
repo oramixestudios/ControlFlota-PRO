@@ -1010,11 +1010,13 @@ function toggleAgenticAI() {
 
 function renderAIHubActions() {
     const container = document.getElementById('ai-hub-actions');
+    const reportsDiv = document.getElementById('ai-admin-reports');
     const settingsBtn = document.querySelector('[onclick="toggleAISettings()"]');
     if (!container) return;
 
     if (CURRENT_USER && CURRENT_USER.role === 'admin') {
         if (settingsBtn) settingsBtn.classList.remove('hidden');
+        if (reportsDiv) reportsDiv.classList.remove('hidden');
         container.innerHTML = `
             <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
             <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
@@ -1022,6 +1024,7 @@ function renderAIHubActions() {
         `;
     } else if (CURRENT_USER) {
         if (settingsBtn) settingsBtn.classList.add('hidden');
+        if (reportsDiv) reportsDiv.classList.add('hidden');
         container.innerHTML = `
             <button class="btn-ai-action" onclick="askAI('technical')">Ayuda Técnica</button>
             <button class="btn-ai-action" onclick="askAI('form_help')">Guía de Formulario</button>
@@ -1074,8 +1077,30 @@ async function askAI(topic) {
         const busy = DB.data().units.filter(u => u.status === 'busy').length;
         msg = `Actualmente tienes ${busy} unidades en ruta y ${DB.data().units.length - busy} disponibles. Todo parece bajo control.`;
     } else if (topic === 'maintenance') {
-        const critical = DB.data().units.filter(u => (u.km - u.lastService) > 9000).length;
-        msg = critical > 0 ? `Atención: Tienes ${critical} unidades en estado crítico de mantenimiento. ¿Quieres que genere un reporte?` : "Toda la flota está al día con sus servicios.";
+        const units = DB.data().units;
+        const critical = units.filter(u => (u.km - u.lastService) > 9000).length;
+
+        // Predictive Logic
+        const logs = DB.data().logs;
+        let predictionMsg = "";
+        if (logs.length > 5) {
+            const unitProjections = units.map(u => {
+                const uLogs = logs.filter(l => l.unitName === u.name).slice(0, 10);
+                if (uLogs.length < 2) return null;
+                const kmDiff = Math.abs(uLogs[0].km - uLogs[uLogs.length - 1].km);
+                const dayDiff = Math.max(1, (new Date(uLogs[0].date) - new Date(uLogs[uLogs.length - 1].date)) / (1000 * 60 * 60 * 24));
+                const dailyAvg = kmDiff / dayDiff;
+                const remaining = 10000 - (u.km - u.lastService);
+                const daysLeft = Math.round(remaining / Math.max(1, dailyAvg));
+                return { name: u.name, days: daysLeft };
+            }).filter(x => x && x.days > 0 && x.days < 30);
+
+            if (unitProjections.length > 0) {
+                predictionMsg = ` Pronóstico: La unidad ${unitProjections[0].name} necesitará servicio en aproximadamente ${unitProjections[0].days} días.`;
+            }
+        }
+
+        msg = critical > 0 ? `Atención: Tienes ${critical} unidades en estado crítico de mantenimiento.${predictionMsg}` : `Toda la flota está al día con sus servicios.${predictionMsg}`;
     } else if (topic === 'technical') {
         msg = "Bienvenido al soporte técnico. Puedes registrar salidas escaneando el código QR de la unidad o seleccionándola manualmente en la lista de 'Unidades'. Para cualquier error, contacta a tu administrador.";
     } else if (topic === 'form_help') {
@@ -1084,6 +1109,148 @@ async function askAI(topic) {
 
     responseEl.innerText = msg;
     await AI.speak(msg);
+}
+
+/**
+ * @section ENTERPRISE FEATURES (OCR, PDF, PREDICTIONS)
+ */
+
+async function startOCR(targetId) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        AI.speak("Procesando imagen del tablero...");
+        const responseEl = document.getElementById('ai-hub-response');
+        responseEl.classList.remove('hidden');
+        responseEl.innerText = "✨ La IA está leyendo el kilometraje...";
+
+        try {
+            // Priority: OpenAI Vision (if configured)
+            const provider = localStorage.getItem('azi_ai_provider');
+            const key = localStorage.getItem('azi_ai_key');
+
+            if (provider === 'openai' && key) {
+                const b64 = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = () => r(reader.result.split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+
+                const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                    body: JSON.stringify({
+                        model: "gpt-4o-mini",
+                        messages: [{
+                            role: "user",
+                            content: [
+                                { type: "text", text: "Extract ONLY the total mileage (number) from this car dashboard image. Return ONLY the number, no text." },
+                                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${b64}` } }
+                            ]
+                        }]
+                    })
+                });
+                const data = await res.json();
+                const text = data.choices[0].message.content.match(/\d+/);
+                if (text) {
+                    document.getElementById(targetId).value = text[0];
+                    AI.speak(`Kilometraje detectado: ${text[0]}`);
+                    responseEl.innerText = `✅ Detectado: ${text[0]} KM`;
+                    return;
+                }
+            }
+
+            // Fallback: Tesseract.js (Local OCR)
+            const result = await Tesseract.recognize(file, 'eng');
+            const numbers = result.data.text.match(/\d{3,}/g); // Look for numbers with 3+ digits
+            if (numbers) {
+                const bestMatch = numbers.sort((a, b) => b.length - a.length)[0];
+                document.getElementById(targetId).value = bestMatch;
+                AI.speak(`LECTURA LOCAL: He detectado ${bestMatch} kilómetros.`);
+                responseEl.innerText = `✅ Lectura OCR: ${bestMatch} KM`;
+            } else {
+                throw new Error("No se detectaron números claros.");
+            }
+        } catch (err) {
+            console.error("OCR Error:", err);
+            AI.speak("No pude leer el número claramente. Por favor, ingrésalo manualmente.");
+            responseEl.innerText = "❌ No se pudo leer la imagen. Intenta de nuevo o escribe manual.";
+        }
+    };
+    input.click();
+}
+
+async function generatePDFReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const data = DB.data();
+
+    AI.speak("Generando reporte ejecutivo en PDF...");
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(30, 136, 229);
+    doc.text("REPORTE EJECUTIVO - CONTROL FLOTA PRO", 14, 22);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generado el: ${new Date().toLocaleString()}`, 14, 30);
+
+    // Summary Box
+    doc.setDrawColor(200);
+    doc.setFillColor(245, 247, 250);
+    doc.rect(14, 35, 182, 30, 'F');
+
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    doc.text(`Unidades Totales: ${data.units.length}`, 20, 45);
+    doc.text(`En Ruta: ${data.units.filter(u => u.status === 'busy').length}`, 20, 52);
+    doc.text(`Alertas de Servicio: ${data.units.filter(u => (u.km - u.lastService) > 9000).length}`, 20, 59);
+
+    // Units Table
+    doc.setFontSize(14);
+    doc.text("Estado de la Flota", 14, 75);
+
+    const unitRows = data.units.map(u => [u.name, u.plate, `${u.km} KM`, u.status === 'available' ? 'Disponible' : 'En Ruta', `${u.km - u.lastService} KM`]);
+    doc.autoTable({
+        startY: 80,
+        head: [['Unidad', 'Placa', 'Kilometraje', 'Estatus', 'Uso desde Servicio']],
+        body: unitRows,
+        theme: 'striped',
+        headStyles: { fillColor: [30, 136, 229] }
+    });
+
+    // History Table
+    doc.addPage();
+    doc.text("Historial de Movimientos Recientes", 14, 22);
+    const logRows = data.logs.slice(0, 20).map(l => [new Date(l.date).toLocaleDateString(), l.unitName, l.user, l.type === 'out' ? 'SALIDA' : 'ENTRADA', `${l.km} KM`]);
+    doc.autoTable({
+        startY: 30,
+        head: [['Fecha', 'Unidad', 'Usuario', 'Evento', 'KM']],
+        body: logRows,
+        headStyles: { fillColor: [67, 160, 71] }
+    });
+
+    // AI Insight
+    const finalY = doc.lastAutoTable.finalY || 30;
+    doc.setFontSize(12);
+    doc.setTextColor(30, 136, 229);
+    doc.text("Análisis de Inteligencia Artificial:", 14, finalY + 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    const insight = "Basado en los datos actuales, la flota presenta un uso estable. Se recomienda programar mantenimiento preventivo para las unidades que exceden los 9,000 km desde su último servicio para evitar paros no programados.";
+    const splitText = doc.splitTextToSize(insight, 180);
+    doc.text(splitText, 14, finalY + 28);
+
+    doc.save(`Reporte_Flota_${new Date().toISOString().slice(0, 10)}.pdf`);
+    AI.speak("El reporte PDF ha sido descargado.");
 }
 
 // Intercept existing initAdmin to include AI Pulse
@@ -1126,6 +1293,8 @@ window.renderCharts = renderCharts;
 window.toggleAISettings = toggleAISettings;
 window.saveAISettings = saveAISettings;
 window.updateAIFields = updateAIFields;
+window.startOCR = startOCR;
+window.generatePDFReport = generatePDFReport;
 
 window.shareLogWA = (unit, user, km, type) => {
     const phone = localStorage.getItem('azi_admin_phone');

@@ -396,7 +396,14 @@
                 </div>
 
                 <label>Kilometraje al Retornar:</label>
-                <input type="number" id="checkin-km" class="form-control" required>
+                <div style="display:flex; gap:8px; margin-bottom:1rem;">
+                    <input type="number" id="checkin-km" class="form-control" style="margin-bottom:0;" required>
+                    <button type="button" class="btn" onclick="startOCR('checkin-km')"
+                        style="background:var(--accent); color:var(--primary); padding:0 15px;"
+                        title="Escanear Tablero">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                </div>
                 <small id="checkin-msg" style="color:var(--danger); display:block; margin-bottom:1rem;"></small>
 
                 <label>Observaciones / Novedades:</label>
@@ -440,6 +447,13 @@
                         <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
                         <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
                         <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+                    </div>
+                    <div id="ai-admin-reports" class="hidden"
+                        style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                        <button class="btn-ai-action" style="background:var(--accent); color:var(--primary);"
+                            onclick="generatePDFReport()">
+                            <i class="fa-solid fa-file-pdf"></i> Descargar Reporte Ejecutivo
+                        </button>
                     </div>
                     <div id="ai-hub-response" class="ai-hub-response hidden"></div>
                 </div>
@@ -523,6 +537,9 @@
     <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <!-- App Logic -->
     <script src="./js/app.js?v=5"></script>
