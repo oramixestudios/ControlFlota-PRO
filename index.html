@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTRALOGÍSTICA PRO - VERSION 3</title>
+
+    <script>
+        // Emergency Service Worker Killer
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="./Logo_Intralogistica.jpg">
+
+    <!-- Meta Tags for SEO/GitHub -->
+    <meta name="description"
+        content="Sistema Profesional de Gestión de Flota e Intralogística. Una solución de Oramix & Co.">
+
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+
+    <!-- SCREEN: LOGIN -->
+    <div id="screen-login" class="container" style="max-width: 400px; margin-top: 4rem;">
+        <div class="card text-center">
+            <img src="Logo_Intralogistica.jpg" alt="Logo" style="width: 120px; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--primary); margin: 0 0 0.5rem 0;">Control Flota PRO</h2>
+            <p style="color: #888; font-size: 0.8rem; margin-bottom: 0.5rem;">Intralogística & Gestión de Activos</p>
+            <p style="color: #bbb; font-size: 0.7rem; margin-bottom: 1.5rem;">Una marca de Oramix & Co</p>
+
+            <form onsubmit="handleLogin(event)">
+                <input type="text" id="login-user" class="form-control" placeholder="Nombre de Usuario" required>
+                <input type="password" id="login-pass" class="form-control" placeholder="Contraseña" required>
+                <button class="btn btn-primary btn-block">Ingresar al Sistema</button>
+            </form>
+
+            <div style="margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1rem;">
+                <button class="btn"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%; padding: 1rem; border-radius: 50px;"
+                    onclick="toggleVoiceAssistant('login')">
+                    <i class="fa-solid fa-microphone"></i> Acceso por Voz
+                </button>
+                <div id="voice-transcript-login"
+                    style="margin-top:5px; font-style: italic; color:#666; font-size: 0.8rem; min-height: 20px;"></div>
+
+                <button class="btn btn-outline"
+                    style="margin-top:0.5rem; color:var(--primary); border-color:var(--primary); width:100%; border-radius:50px;"
+                    onclick="startLoginQR()">
+                    <i class="fa-solid fa-qrcode"></i> Escanear Gafete (QR)
+                </button>
+                <div id="qr-login-reader" style="width: 100%; margin-top: 10px;" class="hidden"></div>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-outline" style="color:#dc3545; border-color:#dc3545; font-size: 0.7rem;"
+                        onclick="resetSimulation()">
+                        ⚠️ Reestablecer Sistema
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header id="app-header" class="header hidden" style="padding: 0.5rem 1rem; height: 60px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div
+                style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <div style="line-height: 1;">
+                <div
+                    style="font-size: 0.6rem; color: rgba(255,255,255,0.7); font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
+                    Control Flota</div>
+                <div id="header-title" style="font-size: 1rem; font-weight: bold; color: white;">Panel</div>
+            </div>
+        </div>
+        <button class="btn btn-outline" onclick="logout()"
+            style="font-size:0.75rem; padding: 0.4rem 0.8rem; border-radius: 20px; color: white; border-color: rgba(255,255,255,0.5);">
+            <i class="fa-solid fa-right-from-bracket"></i> Salir
+        </button>
+    </header>
+
+    <!-- SCREEN: ADMIN -->
+    <div id="screen-admin" class="container hidden">
+        <div id="admin-alerts-area"></div>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="setAdminTab('dash')">Indicadores</div>
+            <div class="nav-tab" onclick="setAdminTab('units')">Inventario</div>
+            <div class="nav-tab" onclick="setAdminTab('history')">Bitácora</div>
+            <div class="nav-tab" onclick="setAdminTab('users')">Personal</div>
+        </div>
+
+        <!-- Tab: Dashboard -->
+        <div id="tab-dash">
+            <div class="card">
+                <h3>Monitoreo de Flota</h3>
+                <div id="admin-map"
+                    style="height: 350px; width: 100%; border-radius: 8px; z-index: 0; background: #eee;"></div>
+            </div>
+
+            <div class="card">
+                <h3>Unidades en Operación</h3>
+                <div id="active-units-list"></div>
+            </div>
+
+            <div class="row">
+                <div class="col card">
+                    <h3 class="text-center">Uso por Unidad (KM)</h3>
+                    <canvas id="c-usage"></canvas>
+                </div>
+                <div class="col card">
+                    <h3>Mantenimiento Preventivo</h3>
+                    <div id="maintenance-list"></div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col card">
+                    <h3 class="text-center">Estatus Licencias</h3>
+                    <div style="max-width: 250px; margin: 0 auto; height: 250px;">
+                        <canvas id="c-licenses"></canvas>
+                    </div>
+                </div>
+                <div class="col card">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Actividad por Usuario</h3>
+                        <select id="filter-user-month" class="form-control"
+                            style="width:120px; font-size:0.8rem; margin:0;" onchange="renderCharts()">
+                            <option value="all">Todo</option>
+                            <option value="0">Enero</option>
+                            <option value="1">Febrero</option>
+                            <option value="2">Marzo</option>
+                            <option value="3">Abril</option>
+                            <option value="4">Mayo</option>
+                            <option value="5">Junio</option>
+                            <option value="6">Julio</option>
+                            <option value="7">Agosto</option>
+                            <option value="8">Septiembre</option>
+                            <option value="9">Octubre</option>
+                            <option value="10">Noviembre</option>
+                            <option value="11">Diciembre</option>
+                        </select>
+                    </div>
+                    <canvas id="c-user-activity"></canvas>
+                </div>
+            </div>
+
+            <!-- SIMULATION TOOLS -->
+            <div class="card" style="border: 2px dashed var(--accent); background: #fffbf0; margin-top:2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h4 style="margin:0;">Generador de Datos</h4>
+                        <small>Utilidad para demostración: genera historial de 30 días.</small>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-warning" onclick="runSimulation()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Simular Historial
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Units -->
+        <div id="tab-units" class="hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                    <h3>Gestión de Flota</h3>
+                    <button class="btn btn-primary" onclick="toggleUnitForm()">+ Agregar Unidad</button>
+                </div>
+
+                <div id="add-unit-form" class="hidden"
+                    style="padding:1.5rem; border:1px solid #eee; border-radius:12px; background:#fcfcfc; margin-bottom: 1.5rem;">
+                    <form onsubmit="saveUnit(event)">
+                        <div class="row">
+                            <div class="col"><label>Modelo:</label><input type="text" id="unit-name"
+                                    class="form-control" required></div>
+                            <div class="col"><label>Placas:</label><input type="text" id="unit-plate"
+                                    class="form-control" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label>KM Actual:</label><input type="number" id="unit-km"
+                                    class="form-control" required></div>
+                            <div class="col"><label>Último Servicio (KM):</label><input type="number"
+                                    id="unit-last-service" class="form-control" required></div>
+                        </div>
+                        <div class="row">
+                            <div class="col"><label>Vencimiento Seguro:</label><input type="date" id="unit-ins"
+                                    class="form-control" required></div>
+                            <div class="col"><label>Vencimiento Verificación:</label><input type="date" id="unit-ver"
+                                    class="form-control" required></div>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:1rem;">
+                            <button class="btn btn-primary">Registrar Unidad</button>
+                            <button type="button" class="btn btn-outline" style="color: #666;"
+                                onclick="toggleUnitForm()">Cerrar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="units-list"></div>
+            </div>
+        </div>
+
+        <!-- Tab: History -->
+        <div id="tab-history" class="hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Bitácora Maestra</h3>
+                    <button class="btn btn-outline" onclick="exportHistory()"
+                        style="font-size:0.8rem; border-radius: 20px; color: var(--primary);">
+                        <i class="fa-solid fa-file-csv"></i> Descargar Reporte (CSV)
+                    </button>
+                </div>
+                <div id="logs-list" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Users -->
+        <div id="tab-users" class="hidden">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Directorio de Conductores</h3>
+                    <button class="btn btn-primary" onclick="toggleUserForm()">+ Registrar Empleado</button>
+                </div>
+
+                <div id="add-user-form" class="hidden"
+                    style="background:#fcfcfc; padding:1.5rem; margin-top:1rem; border-radius:12px; border:1px solid #eee;">
+                    <form onsubmit="handleAddUser(event)">
+                        <input type="text" id="new-name" class="form-control" placeholder="Nombre Completo" required>
+                        <div class="row">
+                            <input type="text" id="new-email" class="form-control" placeholder="Usuario" required>
+                            <input type="password" id="new-pass" class="form-control" placeholder="Contraseña" required>
+                        </div>
+                        <input type="text" id="new-whatsapp" class="form-control" placeholder="Teléfono / WhatsApp">
+                        <div class="row">
+                            <input type="number" id="new-age" class="form-control" placeholder="Edad" required>
+                            <select id="new-vision" class="form-control">
+                                <option value="Aprobado">Certificación Vista: Aprobado</option>
+                                <option value="Requiere Lentes">Certificación Vista: Lentes Requeridos</option>
+                            </select>
+                        </div>
+                        <label>Vigencia de Licencia:</label>
+                        <input type="date" id="new-lic-date" class="form-control" required>
+                        <button class="btn btn-primary btn-block">Crear Cuenta de Acceso</button>
+                    </form>
+                </div>
+                <div id="users-list" style="margin-top:1.5rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: USER / DRIVER -->
+    <div id="screen-user" class="container hidden">
+        <h2 id="user-welcome" style="margin: 1.5rem 0;">Bienvenido</h2>
+
+        <div class="card">
+            <h3>Operaciones de Unidad</h3>
+            <div class="row">
+                <button class="btn btn-primary col" style="padding: 2.5rem 1rem;" onclick="showCheckoutForm()">
+                    <i class="fa-solid fa-key fa-2x"></i><br><br>Retirar Unidad
+                </button>
+                <button class="btn btn-success col" style="padding: 2.5rem 1rem;" onclick="showCheckinForm()">
+                    <i class="fa-solid fa-flag-checkered fa-2x"></i><br><br>Entregar Unidad
+                </button>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <button class="btn"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%; padding: 1.5rem; border-radius: 12px;"
+                    onclick="toggleVoiceAssistant()">
+                    <i class="fa-solid fa-microphone fa-xl"></i>&nbsp;&nbsp;
+                    <span id="voice-status">Asistente de Voz Inteligente</span>
+                </button>
+                <div id="voice-transcript"
+                    style="margin-top:10px; font-style: italic; color:#666; text-align:center; min-height: 20px;"></div>
+            </div>
+
+            <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                <button class="btn btn-outline" style="flex:1; color: #666; font-size: 0.8rem; border-radius: 8px;"
+                    onclick="registerBiometric()">
+                    <i class="fa-solid fa-fingerprint"></i> Biometría
+                </button>
+                <button class="btn btn-outline" style="flex:1; color: #666; font-size: 0.8rem; border-radius: 8px;"
+                    onclick="startQRScanner()">
+                    <i class="fa-solid fa-qrcode"></i> Escanear QR
+                </button>
+            </div>
+            <div id="qr-reader" class="hidden" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="card">
+            <h3>Mis Actividades Recientes</h3>
+            <div id="user-recent-logs"></div>
+        </div>
+    </div>
+
+    <!-- SCREEN: CHECKOUT FORM -->
+    <div id="screen-checkout" class="container hidden">
+        <button class="btn" onclick="showScreen('screen-user')"
+            style="margin-bottom:1rem; color: var(--primary); font-weight: bold;">&larr; Volver</button>
+        <div class="card">
+            <h2>Registro de Salida</h2>
+            <form onsubmit="handleCheckout(event)">
+                <label>Seleccionar Unidad:</label>
+                <select id="checkout-unit" class="form-control" required onchange="updateCheckoutKm()"></select>
+
+                <label>Destino:</label>
+                <input type="text" id="checkout-dest" class="form-control"
+                    placeholder="Ej. Puerto Interior, Planta Mazda..." required>
+
+                <div class="row">
+                    <div class="col">
+                        <label>Kilometraje:</label>
+                        <input type="number" id="checkout-km" class="form-control" readonly
+                            style="background:#f8f9fa; cursor:not-allowed;">
+                    </div>
+                    <div class="col">
+                        <label>Tanque de Combustible:</label>
+                        <select id="checkout-fuel" class="form-control">
+                            <option value="100%">Lleno (100%)</option>
+                            <option value="75%">75% (3/4)</option>
+                            <option value="50%">50% (1/2)</option>
+                            <option value="25%">25% (1/4)</option>
+                            <option value="R">Reserva</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>Evidencia Visual (Opcional):</label>
+                <input type="file" id="checkout-photo" accept="image/*" capture="environment" class="form-control"
+                    onchange="compressImage(this, 'checkout-preview')">
+                <img id="checkout-preview" class="hidden"
+                    style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
+
+                <button class="btn btn-primary btn-block">Confirmar Retiro</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCREEN: CHECKIN FORM -->
+    <div id="screen-checkin" class="container hidden">
+        <button class="btn" onclick="showScreen('screen-user')"
+            style="margin-bottom:1rem; color: var(--primary); font-weight: bold;">&larr; Volver</button>
+        <div class="card">
+            <h2>Bitácora de Entrega</h2>
+            <form onsubmit="handleCheckin(event)">
+                <label>Unidad a Entregar:</label>
+                <select id="checkin-unit" class="form-control" required onchange="updateCheckinMin()"></select>
+
+                <div id="checkin-duration-box" class="alert-box hidden"
+                    style="background:var(--primary-light); color: white;">
+                    <i class="fa-solid fa-clock"></i>&nbsp;&nbsp;
+                    <span>Tiempo de uso registrado: <strong id="checkin-duration-text">--</strong></span>
+                </div>
+
+                <label>Kilometraje al Retornar:</label>
+                <input type="number" id="checkin-km" class="form-control" required>
+                <small id="checkin-msg" style="color:var(--danger); display:block; margin-bottom:1rem;"></small>
+
+                <label>Observaciones / Novedades:</label>
+                <textarea id="checkin-notes" class="form-control" rows="3"
+                    placeholder="Ej. Sin detalles, requiere lavado, golpe en puerta lateral..."></textarea>
+
+                <label>Evidencia de Termino:</label>
+                <input type="file" id="checkin-photo" accept="image/*" capture="environment" class="form-control"
+                    onchange="compressImage(this, 'checkin-preview')">
+                <img id="checkin-preview" class="hidden"
+                    style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
+
+                <button class="btn btn-success btn-block">Finalizar Servicio</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script src="./js/app.js?v=3"></script>
+</body>
+
+</html>/ /   F o r c e   U p d a t e   2 
+ 
+ 

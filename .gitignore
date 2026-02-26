@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Private/Sensitive Data
+# (ES) Archivos con credenciales sensibles - NO PUBLICAR EN GITHUB
+# (EN) Files with sensitive credentials - DO NOT PUBLISH ON GITHUB
+CREDENCIALES_Y_ACCESO.txt
+USUARIOS_Y_CLAVES.txt
+AziLogistica_Para_Hosting-1.zip
+Respaldos/
+
+# IDE files
+.vscode/
+.idea/
+.cursor/
+.cursorrules
+vite.config.js.timestamp-*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
