@@ -449,23 +449,49 @@
                     <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; color: var(--accent);">
                         Configuración de Voz Pro
                     </p>
-                    <label style="font-size: 0.7rem; opacity: 0.7;">OpenAI API Key:</label>
-                    <input type="password" id="ai-api-key" class="form-control"
-                        style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
-                        placeholder="sk-...">
 
-                    <label style="font-size: 0.7rem; opacity: 0.7;">Voz Personalizada:</label>
-                    <select id="ai-voice-preset" class="form-control"
-                        style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem;">
-                        <option value="alloy">Alloy (Neutral)</option>
-                        <option value="nova">Nova (Femenina Enérgica)</option>
-                        <option value="shimmer">Shimmer (Femenina Suave)</option>
-                        <option value="echo">Echo (Masculina Profunda)</option>
-                        <option value="onyx">Onyx (Masculina Autoritaria)</option>
+                    <label style="font-size: 0.7rem; opacity: 0.7;">Proveedor de IA:</label>
+                    <select id="ai-provider" class="form-control" onchange="updateAIFields()"
+                        style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
+                        <option value="browser">Gratis (Navegador)</option>
+                        <option value="openai">OpenAI (Alta Calidad)</option>
+                        <option value="google">Google Cloud (Eficiente)</option>
                     </select>
 
+                    <div id="field-openai" class="hidden">
+                        <label style="font-size: 0.7rem; opacity: 0.7;">OpenAI API Key:</label>
+                        <input type="password" id="ai-api-key" class="form-control"
+                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
+                            placeholder="sk-...">
+
+                        <label style="font-size: 0.7rem; opacity: 0.7;">Voz OpenAI:</label>
+                        <select id="ai-voice-preset" class="form-control"
+                            style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
+                            <option value="alloy">Alloy (Neutral)</option>
+                            <option value="nova">Nova (Femenina Enérgica)</option>
+                            <option value="shimmer">Shimmer (Femenina Suave)</option>
+                            <option value="echo">Echo (Masculina Profunda)</option>
+                            <option value="onyx">Onyx (Masculina Autoritaria)</option>
+                        </select>
+                    </div>
+
+                    <div id="field-google" class="hidden">
+                        <label style="font-size: 0.7rem; opacity: 0.7;">Google API Key:</label>
+                        <input type="password" id="ai-google-key" class="form-control"
+                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
+                            placeholder="AIza...">
+
+                        <label style="font-size: 0.7rem; opacity: 0.7;">Voz Google:</label>
+                        <select id="ai-google-voice" class="form-control"
+                            style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
+                            <option value="es-MX-Neural2-A">Femenina (Neural2-A)</option>
+                            <option value="es-MX-Neural2-B">Masculina (Neural2-B)</option>
+                            <option value="es-MX-Neural2-C">Femenina 2 (Neural2-C)</option>
+                        </select>
+                    </div>
+
                     <button class="btn btn-primary btn-block" onclick="saveAISettings()"
-                        style="font-size: 0.8rem; background: var(--accent); color: var(--primary);">
+                        style="font-size: 0.8rem; background: var(--accent); color: var(--primary); margin-top: 10px;">
                         Guardar Configuración
                     </button>
                     <button class="btn btn-block" onclick="toggleAISettings()"
