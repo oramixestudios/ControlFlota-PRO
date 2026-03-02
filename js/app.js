@@ -8,8 +8,18 @@
  * @description LocalStorage management for data persistence.
  * (ES) Gestión de LocalStorage para la persistencia de datos.
  */
+let APP_CONFIG = null;
+
 const DB = {
-    init: () => {
+    init: async () => {
+        // Load External Config for n8n and app params
+        try {
+            const res = await fetch('./app_config.json');
+            if (res.ok) APP_CONFIG = await res.json();
+            console.log("Control Flota Config Loaded:", APP_CONFIG);
+        } catch (e) {
+            console.warn("Could not load app_config.json, using defaults.");
+        }
         // Initialize Units if not exists
         if (!localStorage.getItem('azi_u')) {
             localStorage.setItem('azi_u', JSON.stringify([
@@ -75,6 +85,39 @@ let CHART_LIC = null, CHART_USAGE = null, CHART_USER_ACT = null;
 let mapInstance = null;
 let html5QrcodeScanner = null;
 
+/**
+ * @section N8N AUTOMATION BRIDGE
+ * @description Send standardized JSON to the centralized n8n engine.
+ */
+async function sendN8Notification(event, data, severity = 'info') {
+    if (!APP_CONFIG || !APP_CONFIG.automation_enabled || !APP_CONFIG.n8n_webhook_url) return;
+
+    const payload = {
+        source: "Control Flota",
+        app_id: APP_CONFIG.app_id || "control-flota-pro",
+        organization: APP_CONFIG.organization || "Oramix & Co",
+        event: event,
+        severity: severity,
+        timestamp: new Date().toISOString(),
+        data: data
+    };
+
+    try {
+        console.log(`[n8n] Sending ${event} alert...`);
+        const res = await fetch(APP_CONFIG.n8n_webhook_url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Bypass-Tunnel-Reminder': 'true'
+            },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) console.log(`[n8n] ${event} sent successfully.`);
+    } catch (e) {
+        console.error(`[n8n] Error sending notification:`, e);
+    }
+}
+
 function handleLogin(e) {
     if (e) e.preventDefault();
     const u = document.getElementById('login-user').value;
@@ -133,7 +176,7 @@ function showScreen(id) {
 function initAdmin() {
     showScreen('screen-admin');
     document.getElementById('header-title').innerText = 'Panel Administrador';
-    checkAlerts();
+    renderMaintenanceAlerts();
     setAdminTab('dash');
     requestNotifyPermission();
 }
@@ -487,6 +530,16 @@ async function handleCheckout(e) {
         gps: coords, dest: dest, photo: photoB64
     });
 
+    // n8n: Notify Unit Checkout
+    sendN8Notification('unit_checkout', {
+        unit: units[idx].name,
+        plate: units[idx].plate,
+        operator: CURRENT_USER.name,
+        destination: dest,
+        fuel: fuel,
+        location: coords
+    }, 'info');
+
     alert('Salida Confirmada');
 
     // Auto WhatsApp Notification for Admin
@@ -546,6 +599,16 @@ async function handleCheckin(e) {
         km: km, date: new Date(), notes: document.getElementById('checkin-notes').value || 'Sin novedades',
         gps: coords, photo: photoB64
     });
+
+    // n8n: Notify Unit Checkin
+    sendN8Notification('unit_checkin', {
+        unit: unit.name,
+        plate: unit.plate,
+        operator: CURRENT_USER.name,
+        final_km: km,
+        notes: document.getElementById('checkin-notes').value || 'Sin novedades',
+        duration_min: durationMin
+    }, 'info');
 
     sendNotification('Vehículo Entregado', `${unit.name} recibido.`);
     alert('Entrega Finalizada Correctamente');
@@ -953,6 +1016,16 @@ const AI = {
                 ${i.text}
             </div>
         `).join('');
+
+        // n8n: Notify Critical AI Insights
+        const criticals = insights.filter(i => i.type === 'critical');
+        if (criticals.length > 0) {
+            sendN8Notification('ai_critical_insight', {
+                count: criticals.length,
+                top_insight: criticals[0].text,
+                insights: criticals
+            }, 'critical');
+        }
     },
 
     speak: async (text) => {

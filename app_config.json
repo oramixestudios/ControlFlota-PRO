@@ -1,0 +1,12 @@
+{
+    "n8n_webhook_url": "https://656a8ff73d2f51.lhr.life/webhook/controlflota-events",
+    "organization": "Oramix & Co",
+    "app_id": "control-flota-pro",
+    "automation_enabled": true,
+    "notifications": {
+        "critical_maintenance": true,
+        "unit_checkout": true,
+        "unit_checkin": true,
+        "unauthorized_access": true
+    }
+}
