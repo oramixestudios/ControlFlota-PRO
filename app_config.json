@@ -1,5 +1,5 @@
 {
-    "n8n_webhook_url": "https://controlflota-n8n-tunnel.loca.lt/webhook/controlflota-events",
+    "n8n_webhook_url": "https://592118b17d3678.lhr.life/webhook/controlflota-events",
     "organization": "Oramix & Co",
     "app_id": "control-flota-pro",
     "automation_enabled": true,
