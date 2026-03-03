@@ -537,7 +537,8 @@ async function handleCheckout(e) {
         operator: CURRENT_USER.name,
         destination: dest,
         fuel: fuel,
-        location: coords
+        location: coords,
+        km_out: units[idx].km
     }, 'info');
 
     alert('Salida Confirmada');
@@ -569,6 +570,7 @@ async function handleCheckin(e) {
         durationMin = Math.round((Date.now() - unit.assignedData.startTime) / 60000);
     }
 
+    const initialKm = units[idx].km;
     units[idx].status = 'available';
     units[idx].km = km;
     units[idx].assignedTo = null;
@@ -605,6 +607,7 @@ async function handleCheckin(e) {
         unit: unit.name,
         plate: unit.plate,
         operator: CURRENT_USER.name,
+        initial_km: initialKm,
         final_km: km,
         notes: document.getElementById('checkin-notes').value || 'Sin novedades',
         duration_min: durationMin
