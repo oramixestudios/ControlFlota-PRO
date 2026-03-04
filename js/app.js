@@ -93,7 +93,15 @@ const DB = {
     addLog: (log) => {
         // Convertimos fechas de JS a texto plano para que Firebase las coma más fácil
         log.date = typeof log.date === 'string' ? log.date : new Date().toISOString();
-        cloudDB.collection("logs").add(log);
+
+        // Firebase odia los datos "undefined". Los eliminamos antes de guardar.
+        Object.keys(log).forEach(key => {
+            if (log[key] === undefined) {
+                delete log[key];
+            }
+        });
+
+        cloudDB.collection("logs").add(log).catch(err => console.error("Error guardando Bitácora:", err));
     }
 };
 
