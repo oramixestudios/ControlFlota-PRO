@@ -1,12 +1,6 @@
 {
-    "n8n_webhook_url": "https://unatrophied-ornerily-tequila.ngrok-free.dev/webhook/controlflota-events",
-    "organization": "Oramix & Co",
-    "app_id": "control-flota-pro",
     "automation_enabled": true,
-    "notifications": {
-        "critical_maintenance": true,
-        "unit_checkout": true,
-        "unit_checkin": true,
-        "unauthorized_access": true
-    }
+    "n8n_webhook_url": "http://localhost:5678/webhook-test/controlflota-events",
+    "app_id": "control-flota-pro",
+    "organization": "Oramix & Co"
 }
