@@ -5,67 +5,95 @@
 
 /**
  * @section DATABASE ENGINE
- * @description LocalStorage management for data persistence.
- * (ES) Gestión de LocalStorage para la persistencia de datos.
+ * @description Cloud Firestore management for real-time synchronization.
  */
+
+// Configuración Secreta de tu Nube (Firebase)
+const firebaseConfig = {
+    apiKey: "AIzaSyCrFSeG0RZo2uM2cZSuyb0KY27arAcWNbw",
+    authDomain: "control-flota-oramix.firebaseapp.com",
+    projectId: "control-flota-oramix",
+    storageBucket: "control-flota-oramix.firebasestorage.app",
+    messagingSenderId: "221114508538",
+    appId: "1:221114508538:web:237c40908a21fcea4cd543",
+    measurementId: "G-18X20FX4S0"
+};
+
+// Encender el motor Firebase
+firebase.initializeApp(firebaseConfig);
+const cloudDB = firebase.firestore();
+
+// Memoria RAM rápida para mantener las gráficas ultra veloces
+let SERVER_DATA = { units: [], users: [], logs: [] };
 let APP_CONFIG = null;
 
 const DB = {
     init: async () => {
-        // Load External Config for n8n and app params
+        // Cargar Configuración n8n
         try {
             const res = await fetch('./app_config.json');
             if (res.ok) APP_CONFIG = await res.json();
-            console.log("Control Flota Config Loaded:", APP_CONFIG);
+            console.log("Control Flota Config Cargada:", APP_CONFIG);
         } catch (e) {
-            console.warn("Could not load app_config.json, using defaults.");
-        }
-        // Initialize Units if not exists
-        if (!localStorage.getItem('azi_u')) {
-            localStorage.setItem('azi_u', JSON.stringify([
-                { id: 'u1', name: 'Nissan NP300', plate: 'GTO-123', km: 45000, status: 'available', lastService: 40000, insurance: '2026-12-01', verification: '2026-06-15' },
-                { id: 'u2', name: 'Chevrolet Aveo', plate: 'MEX-999', km: 10500, status: 'available', lastService: 10000, insurance: '2026-05-20', verification: '2026-11-30' },
-                { id: 'u3', name: 'Ford Ranger', plate: 'LEO-555', km: 82000, status: 'available', lastService: 80000, insurance: '2026-03-10', verification: '2026-08-01' }
-            ]));
+            console.warn("No se pudo cargar app_config, usando predeterminados.");
         }
 
-        // Initialize Users / Drivers
-        let users = localStorage.getItem('azi_users');
-        if (!users) {
-            const mockUsers = [
-                { id: 'admin', pass: 'admin1', role: 'admin', name: 'Admin Principal' },
-                { id: 'user', pass: 'user', role: 'user', name: 'Juan Perez', age: 30, vision: 'Aprobado', licDate: '2026-05-01' }
-            ];
-            // Add technical mock drivers for testing
-            for (let i = 1; i <= 5; i++) {
-                mockUsers.push({
-                    id: `cond${i}`,
-                    pass: `pass${i}`,
-                    role: 'user',
-                    name: `Conductor ${i}`,
-                    age: 25 + i,
-                    vision: 'Aprobado',
-                    licDate: '2026-12-31'
-                });
+        // ESPIA EN TIEMPO REAL: Unidades
+        cloudDB.collection("units").onSnapshot(snapshot => {
+            SERVER_DATA.units = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        });
+
+        // ESPIA EN TIEMPO REAL: Empleados
+        cloudDB.collection("users").onSnapshot(snapshot => {
+            SERVER_DATA.users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Si el estado recarga rápido, aseguramos la inyección al usuario actual
+            if (CURRENT_USER) {
+                const refreshedUser = SERVER_DATA.users.find(u => u.id === CURRENT_USER.id);
+                if (refreshedUser) CURRENT_USER = refreshedUser;
             }
-            localStorage.setItem('azi_users', JSON.stringify(mockUsers));
-        }
+        });
 
-        if (!localStorage.getItem('azi_logs')) localStorage.setItem('azi_logs', '[]');
+        // ESPIA EN TIEMPO REAL: Bitácoras
+        cloudDB.collection("logs").orderBy("date", "desc").onSnapshot(snapshot => {
+            SERVER_DATA.logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        });
+
+        // ============================================
+        // Inyección inicial (Por si es la primera vez que se crea)
+        setTimeout(async () => {
+            if (SERVER_DATA.units.length === 0) {
+                console.log("Creando autos Demo por primera vez en la Nube...");
+                const mocks = [
+                    { id: 'u1', name: 'Nissan NP300', plate: 'GTO-123', km: 45000, status: 'available', lastService: 40000, insurance: '2026-12-01', verification: '2026-06-15' },
+                    { id: 'u2', name: 'Chevrolet Aveo', plate: 'MEX-999', km: 10500, status: 'available', lastService: 10000, insurance: '2026-05-20', verification: '2026-11-30' },
+                    { id: 'u3', name: 'Ford Ranger', plate: 'LEO-555', km: 82000, status: 'available', lastService: 80000, insurance: '2026-03-10', verification: '2026-08-01' }
+                ];
+                mocks.forEach(m => cloudDB.collection("units").doc(m.id).set(m));
+            }
+            if (SERVER_DATA.users.length === 0) {
+                console.log("Creando Admin Inicial en la nube...");
+                cloudDB.collection("users").doc('admin').set({ id: 'admin', pass: 'admin1', role: 'admin', name: 'Admin Principal' });
+                cloudDB.collection("users").doc('user').set({ id: 'user', pass: 'user', role: 'user', name: 'Juan Perez', age: 30, vision: 'Aprobado', licDate: '2026-05-01' });
+            }
+        }, 3000);
     },
 
-    data: () => ({
-        units: JSON.parse(localStorage.getItem('azi_u')),
-        users: JSON.parse(localStorage.getItem('azi_users')),
-        logs: JSON.parse(localStorage.getItem('azi_logs'))
-    }),
+    data: () => SERVER_DATA,
 
-    save: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+    save: (key, val) => {
+        // En lugar de LocalStorage, empujar a la Nube
+        if (key === 'azi_u') {
+            val.forEach(u => cloudDB.collection("units").doc(u.id).set(u));
+        } else if (key === 'azi_users') {
+            val.forEach(u => cloudDB.collection("users").doc(u.id).set(u));
+        }
+    },
 
     addLog: (log) => {
-        const logs = DB.data().logs;
-        logs.unshift(log);
-        DB.save('azi_logs', logs);
+        // Convertimos fechas de JS a texto plano para que Firebase las coma más fácil
+        log.date = typeof log.date === 'string' ? log.date : new Date().toISOString();
+        cloudDB.collection("logs").add(log);
     }
 };
 
