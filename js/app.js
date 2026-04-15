@@ -654,6 +654,72 @@ function handleAddUser(e) {
     renderUsers();
 }
 
+function renderUsers() {
+    const list = document.getElementById('users-list');
+    if (!list) return;
+    const users = DB.data().users;
+    list.innerHTML = users.map(u => `
+        <div class="card" style="padding:1rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); border-left:4px solid ${u.bioId ? 'var(--success)' : 'var(--primary)'};">
+            <div>
+                <strong style="color:var(--text-main); font-size:1.1rem;">${u.name}</strong><br>
+                <small style="color:var(--text-dim);">Rol: ${u.role === 'admin' ? 'Máster Admin' : 'Operador'} | ID: ${u.id}</small>
+                ${u.bioId ? '<br><small style="color:var(--success); font-weight:800;">🔓 BIOMETRÍA VINCULADA</small>' : '<br><small style="color:var(--warning);">🔒 Pendiente registrar rostro/huella</small>'}
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary" onclick="requestBioRegistration('${u.id}')" style="font-size:0.7rem; padding: 0.5rem 1rem; ${u.bioId ? 'opacity:0.5;' : ''}" title="Inscribir Huella/FaceID en este dispositivo">
+                    <i class="fa-solid fa-fingerprint"></i> BIO
+                </button>
+                <button class="btn btn-outline" onclick="deleteUser('${u.id}')" style="color:var(--danger); border-color:rgba(255,62,62,0.2); padding:0.5rem; width:40px;">DEL</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function requestBioRegistration(userId) {
+    if (!window.confirm("¿Vincular el lector biométrico de ESTE dispositivo al usuario seleccionado?")) return;
+    const originalAdmin = CURRENT_USER;
+    const targetUser = DB.data().users.find(u => u.id === userId);
+    
+    if (!targetUser) return alert("Usuario no encontrado.");
+    
+    // Temporarily switch context to enroll target user
+    CURRENT_USER = targetUser;
+    
+    registerBiometric().then(() => {
+        // Restore contextual Admin
+        CURRENT_USER = originalAdmin;
+        renderUsers();
+    }).catch(e => {
+        CURRENT_USER = originalAdmin;
+        console.error("Fallo Biometría:", e);
+    });
+}
+
+function renderHistory() {
+    const list = document.getElementById('logs-list');
+    if (!list) return;
+    const logs = DB.data().logs || [];
+    
+    if(logs.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-dim); text-align:center;">No hay bitácoras operativas registradas.</p>';
+        return;
+    }
+
+    list.innerHTML = logs.slice(0, 50).map(l => `
+        <div style="padding:1rem; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong style="color:var(--text-main)">${l.unitName}</strong> • <span style="color:var(--primary); font-size:0.8rem;">${l.user}</span><br>
+                <small style="color:var(--text-dim)">${new Date(l.date).toLocaleString()} | KM: ${l.km}</small>
+                ${l.notes ? `<br><small style="color:var(--text-dark); font-style:italic;">"${l.notes}"</small>` : ''}
+            </div>
+            <div>
+                <span class="status-badge" style="background:${l.type === 'out' ? 'rgba(255,171,0,0.1)' : 'rgba(0,255,136,0.1)'}; color:${l.type === 'out' ? 'var(--warning)' : 'var(--success)'};">${l.type === 'out' ? 'SALIDA' : 'ENTRADA'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+
 /**
  * @section USER INTERFACE (DRIVER MODE)
  */
@@ -1742,6 +1808,7 @@ window.deleteUser = deleteUser;
 window.startQRScanner = startQRScanner;
 window.startLoginQR = startLoginQR;
 window.registerBiometric = registerBiometric;
+window.requestBioRegistration = requestBioRegistration;
 window.handleBioLogin = handleBioLogin;
 window.renderResults = renderCharts;
 window.renderCharts = renderCharts;
