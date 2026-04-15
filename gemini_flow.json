@@ -1,0 +1,163 @@
+{
+    "name": "Reporte Ejecutivo IA (Gemini)",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.1,
+            "position": [
+                0,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "documentId": {
+                    "__rl": true,
+                    "value": "1wKgyTD6B0N5se0mET8Dbqw0OWzC3o8w9EXHtnQsnCy4",
+                    "mode": "id"
+                },
+                "sheetName": {
+                    "__rl": true,
+                    "value": "Hoja 1",
+                    "mode": "list"
+                },
+                "options": {}
+            },
+            "name": "Google Sheets",
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 4.1,
+            "position": [
+                200,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "aggregateItems",
+                "fieldsToAggregate": {
+                    "fieldToAggregate": [
+                        {
+                            "fieldToAggregate": "KM salida"
+                        },
+                        {
+                            "fieldToAggregate": "Evento"
+                        },
+                        {
+                            "fieldToAggregate": "Unidad"
+                        },
+                        {
+                            "fieldToAggregate": "Operador"
+                        },
+                        {
+                            "fieldToAggregate": "Fecha"
+                        },
+                        {
+                            "fieldToAggregate": "KM regreso"
+                        },
+                        {
+                            "fieldToAggregate": "Gasolina"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Item Lists",
+            "type": "n8n-nodes-base.itemLists",
+            "typeVersion": 3,
+            "position": [
+                400,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=AIzaSyDmfg5qrww35sEze3QIhw_eeZeSPfAYxvA",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"Eres el Director Analista de Flota de Oramix. Redacta un reporte ejecutivo en HTML (usa h3, ul, b). Analiza la siguiente bitácora. Resalta: 1. Total de viajes, 2. Unidad con más KM, 3. Novedades o anomalías (ej. menos gasolina al regresar, viajes sin completar). Datos a analizar:\\n\" + JSON.stringify($json)\n        }\n      ]\n    }\n  ]\n}",
+                "options": {}
+            },
+            "name": "Gemini Pro",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                600,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "fromEmail": "oramixservicios@gmail.com",
+                "toEmail": "oramixservicios@gmail.com",
+                "subject": "📊 Reporte Ejecutivo de Flota (IA Gemini)",
+                "html": "={{ $json.candidates[0].content.parts[0].text }}",
+                "options": {}
+            },
+            "name": "Send an Email",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 2.1,
+            "position": [
+                800,
+                0
+            ]
+        }
+    ],
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Google Sheets",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Sheets": {
+            "main": [
+                [
+                    {
+                        "node": "Item Lists",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Item Lists": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini Pro",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Pro": {
+            "main": [
+                [
+                    {
+                        "node": "Send an Email",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

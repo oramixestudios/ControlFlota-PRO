@@ -4,18 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INTRALOGÍSTICA PRO - VERSION 3</title>
-
-    <script>
-        // Emergency Service Worker Killer
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function (registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
-    </script>
+    <title>ORAMIX | Control Flota PRO</title>
 
     <!-- PWA Support -->
     <link rel="manifest" href="./manifest.json">
@@ -23,57 +12,68 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="./Logo_Intralogistica.jpg">
 
-    <!-- Meta Tags for SEO/GitHub -->
-    <meta name="description"
-        content="Sistema Profesional de Gestión de Flota e Intralogística. Una solución de Oramix & Co.">
+    <!-- SEO & Metadata -->
+    <meta name="description" content="Sistema Premium de Gestión de Flota e Intralogística por Oramix & Co.">
 
-    <!-- External Dependencies -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External Libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="./css/styles.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Master Design System -->
+    <link rel="stylesheet" href="css/styles.css?v=531">
 </head>
 
 <body>
 
-    <!-- SCREEN: LOGIN -->
-    <div id="screen-login" class="container" style="max-width: 400px; margin-top: 4rem;">
-        <div class="card text-center">
-            <img src="Logo_Intralogistica.jpg" alt="Logo" style="width: 120px; margin-bottom: 1.5rem;">
-            <h2 style="color: var(--primary); margin: 0 0 0.5rem 0;">Control Flota PRO</h2>
-            <p style="color: #888; font-size: 0.8rem; margin-bottom: 0.5rem;">Intralogística & Gestión de Activos</p>
-            <p style="color: #bbb; font-size: 0.7rem; margin-bottom: 1.5rem;">Una marca de Oramix & Co</p>
+    <!-- SCREEN: LOGIN (Cyber-Inmersive) -->
+    <div id="screen-login" class="container" style="display: flex; align-items: center; justify-content: center; min-height: 90vh;">
+        <div class="card glass-card-heavy text-center" style="max-width: 440px; border-top: 5px solid var(--primary); width: 100%;">
+            <div style="position: relative; display: inline-block; margin-bottom: 2.5rem;">
+                <div style="position: absolute; inset: -15px; background: var(--primary-glow); filter: blur(25px); border-radius: 50%; opacity: 0.6;"></div>
+                <img src="Logo_Intralogistica.jpg" alt="Logo" style="width: 110px; border-radius: 28px; position: relative; border: 1px solid var(--glass-border);">
+            </div>
+            
+            <h1 class="text-gradient" id="login-title" style="margin-bottom: 0.5rem; font-size: 2.4rem;">INTRA LOGISTICA</h1>
+            <p style="color: var(--text-dim); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 2.5rem;">
+                Neural Logistics Core v5.2
+            </p>
 
             <form onsubmit="handleLogin(event)">
-                <input type="text" id="login-user" class="form-control" placeholder="Nombre de Usuario" required>
-                <input type="password" id="login-pass" class="form-control" placeholder="Contraseña" required>
-                <button class="btn btn-primary btn-block">Ingresar al Sistema</button>
+                <div style="text-align: left;">
+                    <label>Credenciales del Nodo</label>
+                    <input type="text" id="login-user" class="form-control" placeholder="ID de Operador" required>
+                    <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button class="btn btn-primary btn-block" style="margin-top: 1rem; padding: 1.2rem;">
+                    Sincronizar Acceso
+                </button>
             </form>
 
-            <div style="margin-top: 1.5rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                <button class="btn"
-                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%; padding: 1rem; border-radius: 50px;"
-                    onclick="toggleVoiceAssistant('login')">
-                    <i class="fa-solid fa-microphone"></i> Acceso por Voz
-                </button>
-                <div id="voice-transcript-login"
-                    style="margin-top:5px; font-style: italic; color:#666; font-size: 0.8rem; min-height: 20px;"></div>
+            <div style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 2rem;">
+                <div class="row" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <button class="btn btn-outline" onclick="toggleVoiceAssistant('login')" style="padding: 0.8rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-microphone"></i> VOZ
+                    </button>
+                    <button class="btn btn-outline" onclick="startLoginQR()" style="padding: 0.8rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-qrcode"></i> QR
+                    </button>
+                    <button class="btn btn-outline" onclick="handleBioLogin()" style="padding: 0.8rem; font-size: 0.8rem;">
+                        <i class="fa-solid fa-fingerprint"></i> BIO
+                    </button>
+                </div>
+                <div id="voice-transcript-login" style="margin-top:15px; color:var(--primary); font-size: 0.75rem; min-height: 20px; font-weight: 600;"></div>
+                <div id="qr-login-reader" style="width: 100%; margin-top: 15px;" class="hidden"></div>
 
-                <button class="btn btn-outline"
-                    style="margin-top:0.5rem; color:var(--primary); border-color:var(--primary); width:100%; border-radius:50px;"
-                    onclick="startLoginQR()">
-                    <i class="fa-solid fa-qrcode"></i> Escanear Gafete (QR)
-                </button>
-                <div id="qr-login-reader" style="width: 100%; margin-top: 10px;" class="hidden"></div>
-
-                <div style="margin-top: 2rem;">
-                    <button class="btn btn-outline" style="color:#dc3545; border-color:#dc3545; font-size: 0.7rem;"
-                        onclick="resetSimulation()">
-                        ⚠️ Reestablecer Sistema
+                <div style="margin-top: 3rem; opacity: 0.4; font-size: 0.65rem; letter-spacing: 1px;">
+                    <p>ENGINEERED BY <span style="font-weight: 800; color: var(--accent);">ORAMIX & CO</span></p>
+                    <button class="btn" style="background:transparent; color:var(--danger); font-size: 0.6rem; margin-top: 10px;" onclick="resetSimulation()">
+                        REESTABLECER NODO
                     </button>
                 </div>
             </div>
@@ -81,93 +81,76 @@
     </div>
 
     <!-- MAIN HEADER -->
-    <header id="app-header" class="header hidden" style="padding: 0.5rem 1rem; height: 60px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div
-                style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
-                <i class="fa-solid fa-truck-fast"></i>
-            </div>
-            <div style="line-height: 1;">
-                <div
-                    style="font-size: 0.6rem; color: rgba(255,255,255,0.7); font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
-                    Control Flota</div>
-                <div id="header-title" style="font-size: 1rem; font-weight: bold; color: white;">Panel</div>
+    <header id="app-header" class="header hidden">
+        <div id="brand-header" style="display: flex; align-items: center; gap: 15px;">
+            <img class="logo-mini" src="./Logo_Intralogistica.jpg" style="width: 50px; height: 50px; border-radius: 12px; object-fit: cover; border: 1px solid var(--glass-border); box-shadow: var(--shadow-neon);">
+            <div>
+                <h2 id="header-title" style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Intra Logistica</h2>
             </div>
         </div>
-        <button class="btn btn-outline" onclick="logout()"
-            style="font-size:0.75rem; padding: 0.4rem 0.8rem; border-radius: 20px; color: white; border-color: rgba(255,255,255,0.5);">
-            <i class="fa-solid fa-right-from-bracket"></i> Salir
+        <button id="btn-logout" class="btn btn-outline" onclick="logout()" style="padding: 0.7rem 1.4rem; border-radius: 50px; font-size: 0.75rem; color: var(--text-main) !important; border-color: var(--glass-border);">
+            <span class="hidden-mobile">TERMINAR SESIÓN</span>
         </button>
     </header>
 
-    <!-- SCREEN: ADMIN -->
+    <!-- SCREEN: ADMIN (Neural Hub) -->
     <div id="screen-admin" class="container hidden">
         <div id="admin-alerts-area"></div>
 
         <div class="nav-tabs">
-            <div class="nav-tab active" onclick="setAdminTab('dash')">Indicadores</div>
-            <div class="nav-tab" onclick="setAdminTab('units')">Inventario</div>
-            <div class="nav-tab" onclick="setAdminTab('history')">Bitácora</div>
-            <div class="nav-tab" onclick="setAdminTab('users')">Personal</div>
+            <div class="nav-tab active" onclick="setAdminTab('dash')">Pulse</div>
+            <div class="nav-tab" onclick="setAdminTab('flota')">Flota</div>
+            <div class="nav-tab" onclick="setAdminTab('logs')">Logs</div>
+            <div class="nav-tab" onclick="setAdminTab('finance')">Gastos</div>
+            <div class="nav-tab" onclick="setAdminTab('ops')">Ops</div>
+            <div class="nav-tab" onclick="setAdminTab('config')">Config</div>
         </div>
 
         <!-- Tab: Dashboard -->
         <div id="tab-dash">
-            <div class="card">
-                <h3>Monitoreo de Flota</h3>
-                <div id="admin-map"
-                    style="height: 350px; width: 100%; border-radius: 8px; z-index: 0; background: #eee;"></div>
+            <div class="card shadow-neon" style="padding: 0; overflow: hidden; border-color: rgba(0,242,255,0.2);">
+                <div id="admin-map" style="height: 380px; width: 100%; z-index: 0; filter: grayscale(0.8) invert(0.9) brightness(0.8);"></div>
+                <div style="position: absolute; bottom: 15px; right: 15px; z-index: 100;">
+                    <span class="status-badge" style="background: var(--primary); color: var(--bg-deep);">LIVE FEED ACTIVE</span>
+                </div>
             </div>
 
             <!-- AI INTELLIGENCE PULSE -->
-            <div id="ai-pulse-container" class="card glass-card hidden"
-                style="border-left: 4px solid var(--accent); position: relative; overflow: hidden;">
-                <div
-                    style="position: absolute; top: -20px; right: -20px; font-size: 5rem; color: rgba(255,171,0,0.05); transform: rotate(15deg);">
-                    <i class="fa-solid fa-brain"></i>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                    <h3 style="margin:0; color:var(--accent); display:flex; align-items:center; gap:10px;">
-                        <i class="fa-solid fa-bolt-lightning"></i> Intelligence Pulse
+            <div id="ai-pulse-container" class="card hidden" style="border-left: 5px solid var(--primary); background: linear-gradient(90deg, rgba(0,242,255,0.08) 0%, transparent 100%);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h3 style="margin:0; color:var(--primary); display:flex; align-items:center; gap:12px; font-size: 1.4rem;">
+                        NEURAL INSIGHTS
                     </h3>
-                    <span class="badge"
-                        style="background:var(--accent); color:var(--primary); font-weight:bold;">Real-time AI</span>
+                    <div class="orbx-glow" style="width: 15px; height: 15px; position: static;"></div>
                 </div>
-                <div id="ai-insights-feed" style="display:flex; flex-direction:column; gap:10px;">
-                    <!-- Insights will be injected here by AI Engine -->
-                    <div class="skeleton" style="height:40px; width:100%; border-radius:8px;"></div>
+                <div id="ai-insights-feed" style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="skeleton" style="height:60px; width:100%; border-radius:12px;"></div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h3>Unidades en Operación</h3>
-                <div id="active-units-list"></div>
             </div>
 
             <div class="row">
                 <div class="col card">
-                    <h3 class="text-center">Uso por Unidad (KM)</h3>
+                    <h3 class="brand-font" style="margin-bottom: 2rem; color: var(--primary);">Métrica de Uso</h3>
                     <canvas id="c-usage"></canvas>
                 </div>
                 <div class="col card">
-                    <h3>Mantenimiento Preventivo</h3>
-                    <div id="maintenance-list"></div>
+                    <h3 class="brand-font" style="margin-bottom: 2rem; color: var(--accent);">Health Check</h3>
+                    <div id="maintenance-list" style="display: flex; flex-direction: column; gap: 5px;"></div>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col card">
-                    <h3 class="text-center">Estatus Licencias</h3>
-                    <div style="max-width: 250px; margin: 0 auto; height: 250px;">
+                    <h3 class="brand-font text-center" style="margin-bottom: 2rem;">Certificados de Conducción</h3>
+                    <div style="max-width: 240px; margin: 0 auto; height: 240px;">
                         <canvas id="c-licenses"></canvas>
                     </div>
                 </div>
                 <div class="col card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>Actividad por Usuario</h3>
-                        <select id="filter-user-month" class="form-control"
-                            style="width:120px; font-size:0.8rem; margin:0;" onchange="renderCharts()">
-                            <option value="all">Todo</option>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                        <h3 class="brand-font" style="margin:0;">Actividad Operativa</h3>
+                        <select id="filter-user-month" class="form-control" style="width:130px; font-size:0.75rem; margin:0; padding: 0.5rem;" onchange="renderCharts()">
+                            <option value="all">Ciclo Completo</option>
                             <option value="0">Enero</option>
                             <option value="1">Febrero</option>
                             <option value="2">Marzo</option>
@@ -185,18 +168,71 @@
                     <canvas id="c-user-activity"></canvas>
                 </div>
             </div>
+        </div>
 
-            <!-- SIMULATION TOOLS -->
-            <div class="card" style="border: 2px dashed var(--accent); background: #fffbf0; margin-top:2rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h4 style="margin:0;">Generador de Datos</h4>
-                        <small>Utilidad para demostración: genera historial de 30 días.</small>
+        <!-- Tab: Finance -->
+        <div id="tab-finance" class="admin-tab hidden">
+            <div class="row">
+                <div class="col">
+                    <div class="card glass-card-heavy" style="border-left: 4px solid var(--accent);">
+                        <h3 class="text-gradient">Motor Fiscal Intra Logistica</h3>
+                        <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:20px;">Control de deducciones y rendimiento de combustible</p>
+                        
+                        <div id="finance-stats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:15px; margin-bottom:30px;">
+                            <!-- Stats injected via JS -->
+                        </div>
+
+                        <div style="background:rgba(255,171,0,0.05); padding:1.5rem; border-radius:var(--radius-md); border:1px dashed var(--accent-glow);">
+                            <h4 style="color:var(--accent); font-size:0.9rem; margin-bottom:15px;">SUBIR TICKET DE GASTO (OCR)</h4>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                                <div>
+                                    <label style="font-size:0.65rem; color:var(--text-dark);">UNIDAD:</label>
+                                    <select id="fuel-unit-select" class="form-control" style="font-size:0.75rem;"></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.65rem; color:var(--text-dark);">LITROS (OPCIONAL):</label>
+                                    <input type="number" id="fuel-liters" class="form-control" placeholder="Ej. 40.5" style="font-size:0.75rem;">
+                                </div>
+                            </div>
+
+                            <input type="file" id="fuel-ticket-input" class="form-control" accept="image/*" onchange="processFuelTicket(this)">
+                            <div id="ocr-loader" class="hidden" style="margin-top:10px; color:var(--accent);">
+                                <i class="fa-solid fa-circle-notch fa-spin"></i> Analizando ticket con IA...
+                            </div>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn btn-warning" onclick="runSimulation()">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Simular Historial
-                        </button>
+                </div>
+                
+                <div class="col">
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                            <h3 style="margin:0;">Historial de Egresos</h3>
+                            <button class="btn btn-outline" style="font-size:0.6rem; padding:5px 10px;" onclick="exportAuditLog()">EXPORTAR AUDITORÍA</button>
+                        </div>
+                        <div id="expenses-list" style="max-height:250px; overflow-y:auto; margin-bottom:20px;">
+                            <!-- List injected via JS -->
+                        </div>
+
+                        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.05); margin:20px 0;">
+                        
+                        <h4 style="font-size:0.75rem; color:var(--text-dark); margin-bottom:10px;">TABLA DE TRAZABILIDAD (CFDI 4.0 SIM)</h4>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; font-size:0.65rem; color:var(--text-dim); border-collapse: collapse;">
+                                <thead>
+                                    <tr style="text-align:left; border-bottom:1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding:8px;">UUID / FOLIO</th>
+                                        <th style="padding:8px;">MONTO</th>
+                                        <th style="padding:8px;">IVA (16%)</th>
+                                        <th style="padding:8px;">RET. ISR</th>
+                                        <th style="padding:8px;">ESTATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="audit-table-body">
+                                    <!-- Audit data injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -205,41 +241,33 @@
         <!-- Tab: Units -->
         <div id="tab-units" class="hidden">
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-                    <h3>Gestión de Flota</h3>
-                    <button class="btn btn-primary" onclick="toggleUnitForm()">+ Agregar Unidad</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2.5rem;">
+                    <h3 class="brand-font" style="margin:0; font-size: 1.8rem; color: var(--primary);">Inventario de Flota</h3>
+                    <button class="btn btn-primary" onclick="toggleUnitForm()">+ Registrar Unidad</button>
                 </div>
 
-                <div id="add-unit-form" class="hidden"
-                    style="padding:1.5rem; border:1px solid #eee; border-radius:12px; background:#fcfcfc; margin-bottom: 1.5rem;">
+                <div id="add-unit-form" class="hidden" style="padding:2rem; border:1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); background: rgba(255,255,255,0.02); margin-bottom: 2rem;">
                     <form onsubmit="saveUnit(event)">
                         <div class="row">
-                            <div class="col"><label>Modelo:</label><input type="text" id="unit-name"
-                                    class="form-control" required></div>
-                            <div class="col"><label>Placas:</label><input type="text" id="unit-plate"
-                                    class="form-control" required></div>
+                            <div class="col"><label>Modelo / Descripción:</label><input type="text" id="unit-name" class="form-control" required></div>
+                            <div class="col"><label>Placas:</label><input type="text" id="unit-plate" class="form-control" placeholder="GTO-000" required></div>
                         </div>
                         <div class="row">
-                            <div class="col"><label>KM Actual:</label><input type="number" id="unit-km"
-                                    class="form-control" required></div>
-                            <div class="col"><label>Último Servicio (KM):</label><input type="number"
-                                    id="unit-last-service" class="form-control" required></div>
+                            <div class="col"><label>Kilometraje Base:</label><input type="number" id="unit-km" class="form-control" required></div>
+                            <div class="col"><label>KM Último Servicio:</label><input type="number" id="unit-last-service" class="form-control" required></div>
                         </div>
                         <div class="row">
-                            <div class="col"><label>Vencimiento Seguro:</label><input type="date" id="unit-ins"
-                                    class="form-control" required></div>
-                            <div class="col"><label>Vencimiento Verificación:</label><input type="date" id="unit-ver"
-                                    class="form-control" required></div>
+                            <div class="col"><label>Seguro vigente hasta:</label><input type="date" id="unit-ins" class="form-control" required></div>
+                            <div class="col"><label>Vencimiento Verificación:</label><input type="date" id="unit-ver" class="form-control" required></div>
                         </div>
-                        <div style="display:flex; gap:10px; margin-top:1rem;">
-                            <button class="btn btn-primary">Registrar Unidad</button>
-                            <button type="button" class="btn btn-outline" style="color: #666;"
-                                onclick="toggleUnitForm()">Cerrar</button>
+                        <div style="display:flex; gap:15px; margin-top:1.5rem;">
+                            <button class="btn btn-primary">Inicializar Unidad</button>
+                            <button type="button" class="btn btn-outline" onclick="toggleUnitForm()">Cancelar</button>
                         </div>
                     </form>
                 </div>
 
-                <div id="units-list"></div>
+                <div id="units-list" class="row"></div>
             </div>
         </div>
 
@@ -247,124 +275,140 @@
         <div id="tab-history" class="hidden">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Bitácora Maestra</h3>
-                    <button class="btn btn-outline" onclick="exportHistory()"
-                        style="font-size:0.8rem; border-radius: 20px; color: var(--primary);">
-                        <i class="fa-solid fa-file-csv"></i> Descargar Reporte (CSV)
+                    <h3 class="brand-font" style="margin:0;">Registro de Movimientos</h3>
+                    <button class="btn btn-outline" onclick="exportHistory()" style="font-size:0.75rem;">
+                        EXPORTAR CSV
                     </button>
                 </div>
-                <div id="logs-list" style="margin-top: 1rem;"></div>
+                <div id="logs-list" style="margin-top: 2rem;"></div>
             </div>
         </div>
 
         <!-- Tab: Users -->
         <div id="tab-users" class="hidden">
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <h3>Directorio de Conductores</h3>
-                    <button class="btn btn-primary" onclick="toggleUserForm()">+ Registrar Empleado</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                    <h3 class="brand-font" style="margin:0;">Nodos de Operación</h3>
+                    <button class="btn btn-primary" onclick="toggleUserForm()">+ Nuevo Operador</button>
                 </div>
 
-                <div id="add-user-form" class="hidden"
-                    style="background:#fcfcfc; padding:1.5rem; margin-top:1rem; border-radius:12px; border:1px solid #eee;">
+                <div id="add-user-form" class="hidden" style="background:rgba(255,255,255,0.03); padding:2rem; border-radius: var(--radius-lg); border:1px solid rgba(255,255,255,0.1); margin-bottom: 2.5rem;">
                     <form onsubmit="handleAddUser(event)">
-                        <input type="text" id="new-name" class="form-control" placeholder="Nombre Completo" required>
+                        <label>Nombre Completo:</label>
+                        <input type="text" id="new-name" class="form-control" required>
                         <div class="row">
-                            <input type="text" id="new-email" class="form-control" placeholder="Usuario" required>
-                            <input type="password" id="new-pass" class="form-control" placeholder="Contraseña" required>
+                            <div class="col"><label>User ID:</label><input type="text" id="new-email" class="form-control" required></div>
+                            <div class="col"><label>Password:</label><input type="password" id="new-pass" class="form-control" required></div>
                         </div>
-                        <input type="text" id="new-whatsapp" class="form-control" placeholder="Teléfono / WhatsApp">
                         <div class="row">
-                            <input type="number" id="new-age" class="form-control" placeholder="Edad" required>
-                            <select id="new-vision" class="form-control">
-                                <option value="Aprobado">Certificación Vista: Aprobado</option>
-                                <option value="Requiere Lentes">Certificación Vista: Lentes Requeridos</option>
-                            </select>
+                            <div class="col"><label>WhatsApp:</label><input type="text" id="new-whatsapp" class="form-control" placeholder="521..."></div>
+                            <div class="col"><label>Vencimiento Licencia:</label><input type="date" id="new-lic-date" class="form-control" required></div>
                         </div>
-                        <label>Vigencia de Licencia:</label>
-                        <input type="date" id="new-lic-date" class="form-control" required>
+                        
+                        <label>Foto de Perfil (Face-ID Reference):</label>
+                        <input type="file" id="new-profile-photo" accept="image/*" class="form-control" onchange="compressImage(this, 'new-user-preview')">
+                        <img id="new-user-preview" class="hidden" style="width:100px; height:100px; object-fit:cover; border-radius:30px; border:2px solid var(--primary); margin: 1rem 0;">
 
-                        <label>Foto de Perfil (Maestra/Face-ID):</label>
-                        <input type="file" id="new-profile-photo" accept="image/*" class="form-control"
-                            onchange="compressImage(this, 'new-user-preview')">
-                        <img id="new-user-preview" class="hidden"
-                            style="width:80px; height:80px; object-fit:cover; border-radius:50%; border:2px solid var(--accent); margin-bottom:1rem;">
-
-                        <button class="btn btn-primary btn-block">Crear Cuenta de Acceso</button>
+                        <button class="btn btn-primary btn-block">Enrolar Operador</button>
                     </form>
                 </div>
-                <div id="users-list" style="margin-top:1.5rem;"></div>
+                <div id="users-list"></div>
             </div>
+        </div>
+
+        <!-- Tab: Config -->
+        <div id="tab-config" class="hidden"></div>
+    </div>
+
+    <!-- SCREEN: USER / DRIVER (Action Center) -->
+    <div id="screen-user" class="container hidden">
+        <h2 id="user-welcome" style="margin: 2.5rem 0; font-size: 2.5rem;" class="text-gradient">Bienvenido</h2>
+
+        <div class="card glass-card-heavy" style="border-left: 5px solid var(--primary);">
+            <h3 style="margin-top:0; color:var(--primary); font-size: 1.4rem; letter-spacing: 1px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                NEURAL PANEL
+                <button class="btn btn-outline" style="padding: 0.3rem 0.8rem; font-size: 0.6rem; border-radius: 8px;" onclick="setTheme(document.body.classList.contains('day-mode') ? 'dark' : 'light')">
+                    CAMBIAR MODO
+                </button>
+            </h3>
+            
+            <div class="row" style="margin: 2.5rem 0 1rem 0; grid-template-columns: 1fr 1fr;">
+                <button class="btn btn-primary" style="height: 140px; border-radius: var(--radius-lg); flex-direction: column;" onclick="showCheckoutForm()">
+                    <span style="font-size: 1.5rem; margin-bottom: 8px; font-weight: 800;">SALIDAS</span>
+                    <span>RETIRAR</span>
+                </button>
+                <button class="btn btn-success" style="height: 140px; border-radius: var(--radius-lg); flex-direction: column;" onclick="showCheckinForm()">
+                    <span style="font-size: 1.5rem; margin-bottom: 8px; font-weight: 800;">ENTREGAS</span>
+                    <span>ENTREGAR</span>
+                </button>
+            </div>
+            
+            <button class="btn btn-block" style="background:linear-gradient(135deg, #ffab00, #ff6a00); color:#000; border:none; border-radius:var(--radius-lg); padding: 1.5rem; margin-bottom: 2.5rem;" onclick="showFuelForm()">
+                <span style="font-size: 1.3rem; font-weight: 900; letter-spacing: 1px;">⛽ CARGAR COMBUSTIBLE</span>
+            </button>
+
+            <button class="btn btn-block btn-outline" style="padding: 1.8rem; border-radius: var(--radius-lg); background: rgba(0,242,255,0.03);" onclick="toggleVoiceAssistant()">
+                <div style="display:flex; align-items:center; justify-content:center; gap:15px;">
+                    <div class="orbx-glow" style="position:static; width:15px; height:15px;"></div>
+                    <span id="voice-status" style="font-weight: 800; color: var(--primary);">SISTEMA DE VOZ ACTIVO</span>
+                </div>
+            </button>
+            <div id="voice-transcript" style="margin-top:15px; font-style: italic; color:var(--text-dim); text-align:center; min-height: 20px;"></div>
+        </div>
+
+        <div class="card">
+            <h3 class="brand-font">Bitácora Reciente</h3>
+            <div id="user-recent-logs"></div>
         </div>
     </div>
 
-    <!-- SCREEN: USER / DRIVER -->
-    <div id="screen-user" class="container hidden">
-        <h2 id="user-welcome" style="margin: 1.5rem 0;">Bienvenido</h2>
+    <!-- SCREEN: FUEL UPLOAD (OPERATOR) -->
+    <div id="screen-fuel" class="container hidden">
+        <button class="btn btn-outline" onclick="showScreen('screen-user')" style="margin-bottom:2rem; padding: 0.5rem 1rem;">
+            VOLVER
+        </button>
+        <div class="card glass-card-heavy">
+            <h2 class="text-gradient" style="margin-bottom: 2rem; font-size: 2rem;">⛽ CARGA COMBUSTIBLE</h2>
+            <div style="background:rgba(255,171,0,0.05); padding:1.5rem; border-radius:var(--radius-md); border:1px dashed var(--accent-glow); margin-bottom:2rem;">
+                <h4 style="color:var(--accent); font-size:0.9rem; margin-bottom:15px;">ESCÁNER DE TICKET (AI OCR)</h4>
+                
+                <label>Unidad Actual:</label>
+                <select id="op-fuel-unit" class="form-control" style="margin-bottom: 1rem;"></select>
 
-        <div class="card">
-            <h3>Operaciones de Unidad</h3>
-            <div class="row">
-                <button class="btn btn-primary col" style="padding: 2.5rem 1rem;" onclick="showCheckoutForm()">
-                    <i class="fa-solid fa-key fa-2x"></i><br><br>Retirar Unidad
-                </button>
-                <button class="btn btn-success col" style="padding: 2.5rem 1rem;" onclick="showCheckinForm()">
-                    <i class="fa-solid fa-flag-checkered fa-2x"></i><br><br>Entregar Unidad
-                </button>
+                <label>Litros Cargados (Aprox):</label>
+                <input type="number" id="op-fuel-liters" class="form-control" placeholder="Ej. 40.5" style="margin-bottom: 1.5rem;">
+
+                <label>Foto Clara del Ticket:</label>
+                <input type="file" id="op-fuel-ticket" class="form-control" accept="image/*" capture="environment" onchange="processOpFuelTicket(this)">
+                
+                <div id="op-ocr-loader" class="hidden" style="margin-top:10px; color:var(--accent); text-align:center;">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Sincronizando Bóveda Fiscal...
+                </div>
             </div>
-
-            <div style="margin-top: 1.5rem;">
-                <button class="btn"
-                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; width: 100%; padding: 1.5rem; border-radius: 12px;"
-                    onclick="toggleVoiceAssistant()">
-                    <i class="fa-solid fa-microphone fa-xl"></i>&nbsp;&nbsp;
-                    <span id="voice-status">Asistente de Voz Inteligente</span>
-                </button>
-                <div id="voice-transcript"
-                    style="margin-top:10px; font-style: italic; color:#666; text-align:center; min-height: 20px;"></div>
-            </div>
-
-            <div style="margin-top: 1rem; display: flex; gap: 10px;">
-                <button class="btn btn-outline" style="flex:1; color: #666; font-size: 0.8rem; border-radius: 8px;"
-                    onclick="registerBiometric()">
-                    <i class="fa-solid fa-fingerprint"></i> Biometría
-                </button>
-                <button class="btn btn-outline" style="flex:1; color: #666; font-size: 0.8rem; border-radius: 8px;"
-                    onclick="startQRScanner()">
-                    <i class="fa-solid fa-qrcode"></i> Escanear QR
-                </button>
-            </div>
-            <div id="qr-reader" class="hidden" style="margin-top:10px;"></div>
-        </div>
-
-        <div class="card">
-            <h3>Mis Actividades Recientes</h3>
-            <div id="user-recent-logs"></div>
         </div>
     </div>
 
     <!-- SCREEN: CHECKOUT FORM -->
     <div id="screen-checkout" class="container hidden">
-        <button class="btn" onclick="showScreen('screen-user')"
-            style="margin-bottom:1rem; color: var(--primary); font-weight: bold;">&larr; Volver</button>
-        <div class="card">
-            <h2>Registro de Salida</h2>
+        <button class="btn btn-outline" onclick="showScreen('screen-user')" style="margin-bottom:2rem; padding: 0.5rem 1rem;">
+            VOLVER
+        </button>
+        <div class="card glass-card-heavy">
+            <h2 class="text-gradient" style="margin-bottom: 2rem; font-size: 2rem;">REGISTRO DE SALIDA</h2>
             <form onsubmit="handleCheckout(event)">
-                <label>Seleccionar Unidad:</label>
+                <label>Unidad a Operar:</label>
                 <select id="checkout-unit" class="form-control" required onchange="updateCheckoutKm()"></select>
 
-                <label>Destino:</label>
-                <input type="text" id="checkout-dest" class="form-control"
-                    placeholder="Ej. Puerto Interior, Planta Mazda..." required>
+                <label>Destino de Ruta:</label>
+                <input type="text" id="checkout-dest" class="form-control" placeholder="Ej. Planta 1 / Cliente X" required>
 
                 <div class="row">
                     <div class="col">
-                        <label>Kilometraje:</label>
-                        <input type="number" id="checkout-km" class="form-control" readonly
-                            style="background:#f8f9fa; cursor:not-allowed;">
+                        <label>KM Inicial (Lectura):</label>
+                        <input type="number" id="checkout-km" class="form-control" readonly style="opacity: 0.6; pointer-events: none;">
                     </div>
                     <div class="col">
-                        <label>Tanque de Combustible:</label>
+                        <label>Nivel de Combustible:</label>
                         <select id="checkout-fuel" class="form-control">
                             <option value="100%">Lleno (100%)</option>
                             <option value="75%">75% (3/4)</option>
@@ -375,203 +419,133 @@
                     </div>
                 </div>
 
-                <label>Evidencia Visual (Opcional):</label>
-                <input type="file" id="checkout-photo" accept="image/*" capture="environment" class="form-control"
-                    onchange="compressImage(this, 'checkout-preview')">
+                <label>Evidencia de Salida:</label>
+                <input type="file" id="checkout-photo" accept="image/*" capture="environment" class="form-control" onchange="compressImage(this, 'checkout-preview')">
 
-                <!-- Face-ID Status Box -->
-                <div id="checkout-face-status" class="alert-box hidden"
-                    style="background:#333; color:white; margin-bottom:1rem; border-left:4px solid var(--accent);">
-                    <i class="fa-solid fa-face-smile"></i>&nbsp;&nbsp;
-                    <span id="checkout-face-text">Verificando Identidad...</span>
+                <div id="checkout-face-status" class="card hidden shadow-neon" style="background: rgba(0,255,136,0.1); border-color: var(--success); text-align: center; padding: 1rem;">
+                    <span id="checkout-face-text" style="font-weight: 800; font-size: 0.9rem;">ESCANEO FACIAL ACTIVO</span>
                 </div>
 
-                <img id="checkout-preview" class="hidden"
-                    style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
+                <img id="checkout-preview" class="hidden" style="width:100%; border-radius: var(--radius-md); margin-bottom: 2rem; border: 1px solid var(--primary-glow);">
 
-                <button class="btn btn-primary btn-block">Confirmar Retiro</button>
+                <button class="btn btn-primary btn-block" style="padding: 1.5rem;">AUTORIZAR RETIRO</button>
             </form>
         </div>
     </div>
 
     <!-- SCREEN: CHECKIN FORM -->
     <div id="screen-checkin" class="container hidden">
-        <button class="btn" onclick="showScreen('screen-user')"
-            style="margin-bottom:1rem; color: var(--primary); font-weight: bold;">&larr; Volver</button>
-        <div class="card">
-            <h2>Bitácora de Entrega</h2>
+        <button class="btn btn-outline" onclick="showScreen('screen-user')" style="margin-bottom:2rem; padding: 0.5rem 1rem;">
+            VOLVER
+        </button>
+        <div class="card glass-card-heavy">
+            <h2 class="text-gradient" style="margin-bottom: 2rem; font-size: 2rem;">BITÁCORA DE ENTREGA</h2>
             <form onsubmit="handleCheckin(event)">
-                <label>Unidad a Entregar:</label>
+                <label>Unidad a Retornar:</label>
                 <select id="checkin-unit" class="form-control" required onchange="updateCheckinMin()"></select>
 
-                <div id="checkin-duration-box" class="alert-box hidden"
-                    style="background:var(--primary-light); color: white;">
-                    <i class="fa-solid fa-clock"></i>&nbsp;&nbsp;
-                    <span>Tiempo de uso registrado: <strong id="checkin-duration-text">--</strong></span>
+                <div id="checkin-duration-box" class="card hidden" style="background: rgba(0,242,255,0.05); padding: 1rem; text-align: center;">
+                    <span style="font-weight: 800;">Tiempo de Uso: <span id="checkin-duration-text" style="color: var(--primary);">--</span></span>
                 </div>
 
-                <label>Kilometraje al Retornar:</label>
-                <div style="display:flex; gap:8px; margin-bottom:1rem;">
-                    <input type="number" id="checkin-km" class="form-control" style="margin-bottom:0;" required>
-                    <button type="button" class="btn" onclick="startOCR('checkin-km')"
-                        style="background:var(--accent); color:var(--primary); padding:0 15px;"
-                        title="Escanear Tablero">
-                        <i class="fa-solid fa-camera"></i>
-                    </button>
-                </div>
-                <small id="checkin-msg" style="color:var(--danger); display:block; margin-bottom:1rem;"></small>
-
-                <label>Observaciones / Novedades:</label>
-                <textarea id="checkin-notes" class="form-control" rows="3"
-                    placeholder="Ej. Sin detalles, requiere lavado, golpe en puerta lateral..."></textarea>
-
-                <label>Evidencia de Termino:</label>
-                <input type="file" id="checkin-photo" accept="image/*" capture="environment" class="form-control"
-                    onchange="compressImage(this, 'checkin-preview')">
-
-                <!-- Face-ID Status Box -->
-                <div id="checkin-face-status" class="alert-box hidden"
-                    style="background:#333; color:white; margin-bottom:1rem; border-left:4px solid var(--accent);">
-                    <i class="fa-solid fa-face-smile"></i>&nbsp;&nbsp;
-                    <span id="checkin-face-text">Verificando Identidad...</span>
+                <div class="row">
+                    <div class="col">
+                        <label>Odómetro Final:</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="checkin-km" class="form-control" placeholder="000000" style="margin:0;" required>
+                            <button type="button" class="btn btn-primary" onclick="startOCR('checkin-km')" style="padding: 0 1.2rem; font-weight:800; font-size:0.75rem;">CAM</button>
+                        </div>
+                        <small id="checkin-msg" style="color:var(--danger); display:block; margin: 10px 0; font-weight: 800;"></small>
+                    </div>
+                    <div class="col">
+                        <label>Nivel Combustible:</label>
+                        <select id="checkin-fuel" class="form-control">
+                            <option value="100%">Lleno (100%)</option>
+                            <option value="75%">75% (3/4)</option>
+                            <option value="50%">50% (1/2)</option>
+                            <option value="25%">25% (1/4)</option>
+                            <option value="R">Reserva</option>
+                        </select>
+                    </div>
                 </div>
 
-                <img id="checkin-preview" class="hidden"
-                    style="width:100%; border-radius:12px; margin-bottom:1rem; border:1px solid #eee;">
+                <label>Condición de la Unidad / Novedades:</label>
+                <textarea id="checkin-notes" class="form-control" rows="3" placeholder="Ej. Unidad limpia, reporte de golpe en rin..."></textarea>
 
-                <button class="btn btn-success btn-block">Finalizar Servicio</button>
+                <label>Lectura de Cierre:</label>
+                <input type="file" id="checkin-photo" accept="image/*" capture="environment" class="form-control" onchange="compressImage(this, 'checkin-preview')">
+
+                <div id="checkin-face-status" class="card hidden shadow-neon" style="background: rgba(0,255,136,0.1); border-color: var(--success); text-align: center; padding: 1rem;">
+                    <span id="checkin-face-text" style="font-weight: 800; font-size: 0.9rem;">IDENTIDAD CONFIRMADA</span>
+                </div>
+
+                <img id="checkin-preview" class="hidden" style="width:100%; border-radius: var(--radius-md); margin-bottom: 2rem; border: 1px solid var(--secondary-glow);">
+
+                <button class="btn btn-success btn-block" style="padding: 1.5rem;">CERRAR BITÁCORA</button>
             </form>
         </div>
     </div>
 
-    <!-- AGENTIC AI HUB (ORBX) -->
-    <div id="ai-hub-orbx" class="ai-hub-container hidden">
+    <!-- AGENTIC AI HUB (ORBX HUB) -->
+    <div id="ai-hub-orbx" class="ai-hub-container hidden" style="position: fixed; bottom: 25px; right: 25px; z-index: 2000;">
         <div class="orbx-glow"></div>
-        <button class="orbx-btn" onclick="toggleAgenticAI()" title="AI Agent Hub">
-            <i class="fa-solid fa-brain"></i>
+        <button class="orbx-btn" onclick="toggleAgenticAI()" style="font-family:'Outfit'; font-weight:900; color:white; font-size:1.2rem;">
+            HUB
         </button>
-        <div id="ai-hub-panel" class="ai-hub-panel hidden">
-            <div class="ai-hub-header">
-                <span><i class="fa-solid fa-microchip"></i> Agentic Intelligence</span>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <button onclick="toggleAISettings()"
-                        style="background:none; border:none; color:white; cursor:pointer; opacity:0.7;"><i
-                            class="fa-solid fa-gear"></i></button>
-                    <button onclick="toggleAgenticAI()"
-                        style="background:none; border:none; color:white; cursor:pointer;"><i
-                            class="fa-solid fa-xmark"></i></button>
+        
+        <div id="ai-hub-panel" class="ai-hub-panel hidden shadow-neon">
+            <div class="header" style="background: transparent; border: none; padding: 1.5rem; justify-content: space-between;">
+                <span class="text-gradient" style="font-family: 'Outfit'; font-weight: 800; font-size: 1.1rem;">NEURAL CORE</span>
+                <div style="display:flex; gap:12px;">
+                    <button onclick="toggleAISettings()" style="background:none; border:none; color:white; opacity: 0.6; cursor:pointer; font-weight:800; font-size:0.7rem;">CFG</button>
+                    <button onclick="toggleAgenticAI()" style="background:none; border:none; color:white; opacity: 0.6; cursor:pointer; font-weight:800; font-size:0.7rem;">OFF</button>
                 </div>
             </div>
-            <div id="ai-hub-content" class="ai-hub-content">
-                <!-- MAIN VIEW -->
+            
+            <div id="ai-hub-content" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                <!-- Main View -->
                 <div id="ai-main-view">
-                    <p style="font-size: 0.8rem; opacity: 0.8;">¿En qué puedo ayudarte hoy?</p>
-                    <div id="ai-hub-actions" class="ai-hub-actions">
-                        <button class="btn-ai-action" onclick="askAI('status')">Estatus de Flota</button>
-                        <button class="btn-ai-action" onclick="askAI('maintenance')">Mantenimiento</button>
-                        <button class="btn-ai-action" onclick="toggleVoiceAssistant()">Comando de Voz</button>
+                    <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1.5rem;">¿Qué análisis requieres procesar hoy?</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button class="btn btn-outline" style="font-size: 0.7rem; padding: 0.8rem;" onclick="askAI('status')">Global Status</button>
+                        <button class="btn btn-outline" style="font-size: 0.7rem; padding: 0.8rem;" onclick="askAI('maintenance')">Health Scan</button>
                     </div>
-                    <div id="ai-admin-reports" class="hidden"
-                        style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                        <button class="btn-ai-action" style="background:var(--accent); color:var(--primary);"
-                            onclick="generatePDFReport()">
-                            <i class="fa-solid fa-file-pdf"></i> Descargar Reporte Ejecutivo
-                        </button>
-                    </div>
-                    <div id="ai-hub-response" class="ai-hub-response hidden"></div>
+                    <button class="btn btn-primary btn-block" style="margin-top: 10px; font-size: 0.8rem;" onclick="toggleVoiceAssistant()">COMANDO DE VOZ</button>
+                    
+                    <div id="ai-hub-response" class="hidden" style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 15px; font-size: 0.85rem; border: 1px solid var(--primary-glow);"></div>
                 </div>
 
-                <!-- SETTINGS VIEW -->
+                <!-- Settings View (AI Config) -->
                 <div id="ai-settings-view" class="hidden">
-                    <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; color: var(--accent);">
-                        Configuración de Voz Pro
-                    </p>
-
-                    <label style="font-size: 0.7rem; opacity: 0.7;">Proveedor de IA:</label>
-                    <select id="ai-provider" class="form-control" onchange="updateAIFields()"
-                        style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
-                        <option value="browser">Gratis (Navegador)</option>
-                        <option value="openai">OpenAI (Alta Calidad)</option>
-                        <option value="google">Google Cloud (Eficiente)</option>
+                    <h4 style="color: var(--accent); margin-bottom: 1rem;">Neural Config</h4>
+                    <label style="font-size: 0.7rem;">Provider:</label>
+                    <select id="ai-provider" class="form-control" style="padding: 0.6rem; font-size: 0.8rem;" onchange="updateAIFields()">
+                        <option value="browser">System Default</option>
+                        <option value="openai">OpenAI (GTP-4o)</option>
+                        <option value="google">Google Gemini</option>
                     </select>
-
-                    <div id="field-openai" class="hidden">
-                        <label style="font-size: 0.7rem; opacity: 0.7;">OpenAI API Key:</label>
-                        <input type="password" id="ai-api-key" class="form-control"
-                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
-                            placeholder="sk-...">
-
-                        <label style="font-size: 0.7rem; opacity: 0.7;">Voz OpenAI:</label>
-                        <select id="ai-voice-preset" class="form-control"
-                            style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
-                            <option value="alloy">Alloy (Neutral)</option>
-                            <option value="nova">Nova (Femenina Enérgica)</option>
-                            <option value="shimmer">Shimmer (Femenina Suave)</option>
-                            <option value="echo">Echo (Masculina Profunda)</option>
-                            <option value="onyx">Onyx (Masculina Autoritaria)</option>
-                        </select>
-                    </div>
-
-                    <div id="field-google" class="hidden">
-                        <label style="font-size: 0.7rem; opacity: 0.7;">Google API Key:</label>
-                        <input type="password" id="ai-google-key" class="form-control"
-                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
-                            placeholder="AIza...">
-
-                        <label style="font-size: 0.7rem; opacity: 0.7;">Voz Google:</label>
-                        <select id="ai-google-voice" class="form-control"
-                            style="background: #1e272e; border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;">
-                            <option value="es-MX-Neural2-A">Femenina (Neural2-A)</option>
-                            <option value="es-MX-Neural2-B">Masculina (Neural2-B)</option>
-                            <option value="es-MX-Neural2-C">Femenina 2 (Neural2-C)</option>
-                        </select>
-                    </div>
-
-                    <div id="field-comm"
-                        style="border-top: 1px solid rgba(255,255,255,0.1); margin-top: 10px; padding-top: 10px;">
-                        <p style="font-size: 0.7rem; font-weight: bold; margin-bottom: 8px; color: #3ae374;">
-                            Notificaciones Admin</p>
-
-                        <label style="font-size: 0.7rem; opacity: 0.7;">WhatsApp Admin (Ej. 52199...):</label>
-                        <input type="text" id="ai-admin-phone" class="form-control"
-                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
-                            placeholder="521...">
-
-                        <label style="font-size: 0.7rem; opacity: 0.7;">Correo Reportes:</label>
-                        <input type="email" id="ai-admin-email" class="form-control"
-                            style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: white; font-size: 0.8rem; margin-bottom: 8px;"
-                            placeholder="admin@ejemplo.com">
-                    </div>
-
-                    <button class="btn btn-primary btn-block" onclick="saveAISettings()"
-                        style="font-size: 0.8rem; background: var(--accent); color: var(--primary); margin-top: 10px;">
-                        Guardar Configuración
-                    </button>
-                    <button class="btn btn-block" onclick="toggleAISettings()"
-                        style="font-size: 0.7rem; background: transparent; color: white; opacity: 0.5;">
-                        &larr; Volver
-                    </button>
+                    <button class="btn btn-primary btn-block" onclick="saveAISettings()" style="font-size: 0.7rem; padding: 0.8rem; margin-top: 1rem;">Sincronizar</button>
+                    <button class="btn btn-block" onclick="toggleAISettings()" style="color: white; font-size: 0.7rem; opacity: 0.5;">Atrás</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SDKs & External Libs -->
+    <!-- Scripts Centralizados -->
     <script src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- Firebase (Nube Central) -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 
-    <!-- App Logic -->
-    <script src="./js/app.js?v=7"></script>
+    <!-- Project Logic -->
+    <script src="./js/app.js?v=401"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Neural Core: PWA Registered'));
+        }
+    </script>
 </body>
 
-</html>/ /   F o r c e   U p d a t e   2 
- 
- 
+</html>
