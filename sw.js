@@ -1,9 +1,9 @@
-const CACHE_NAME = 'control-flota-pro-v5.3.3';
+const CACHE_NAME = 'control-flota-pro-v5.3.4';
 const ASSETS = [
     './',
     './index.html',
-    './css/styles.css?v=533',
-    './js/app.js?v=533',
+    './css/styles.css?v=534',
+    './js/app.js?v=534',
     './manifest.json',
     './Logo_Intralogistica.jpg',
     'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@900&display=swap',

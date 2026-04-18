@@ -833,6 +833,42 @@ async function handleCheckin(e) {
     units[idx].assignedData = null;
     DB.save('azi_u', units);
 
+    const fuelCost = parseFloat(document.getElementById('checkin-fuel-cost') ? document.getElementById('checkin-fuel-cost').value : NaN);
+    const fuelLiters = parseFloat(document.getElementById('checkin-fuel-liters') ? document.getElementById('checkin-fuel-liters').value : NaN);
+    
+    // Auto-create Fiscal Entry if Operator bought gas on this trip
+    if (!isNaN(fuelCost) && fuelCost > 0) {
+        const expense = {
+            id: 'exp_' + Date.now(),
+            uuid: 'CFDI-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+            date: new Date().toLocaleDateString(),
+            amount: fuelCost,
+            category: 'Combustible',
+            unitId: uid,
+            liters: !isNaN(fuelLiters) ? fuelLiters : null,
+            provider: 'Carga en Ruta (Operador)',
+            isEfos: false 
+        };
+        const expenses = DB.data().expenses || [];
+        expenses.unshift(expense);
+        DB.save('azi_expenses', expenses);
+        
+        // Push this simulated expense to bridging 
+        if (typeof botDB !== 'undefined' && botDB) {
+            try {
+                botDB.from('invoices').insert([{
+                    id: expense.uuid,
+                    fecha: new Date().toISOString(),
+                    rfc_receptor: 'RAFJ840827CK6', 
+                    concepto: `[FLOTA] Carga en Ruta - ${uid}`,
+                    monto: fuelCost,
+                    metadata: { source: 'ControlFlota_Pro_Route', liters: expense.liters, unitId: uid }
+                }]).then();
+            } catch (err) {}
+        }
+        sendN8Notification('fuel_upload_route', { unit_id: uid, amount: fuelCost }, 'info');
+    }
+
     const photoInput = document.getElementById('checkin-photo');
     const photoB64 = photoInput.dataset.b64 || null;
     const fuelIn = document.getElementById('checkin-fuel') ? document.getElementById('checkin-fuel').value : 'N/A';
@@ -1090,6 +1126,20 @@ function updateCheckinMin() {
             const diff = Date.now() - u.assignedData.startTime;
             const minutes = Math.round(diff / 60000);
             txt.innerText = `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+        }
+        document.getElementById('checkin-trip-km').value = '';
+    }
+}
+
+function updateAbsKm() {
+    const id = document.getElementById('checkin-unit').value;
+    const u = DB.data().units.find(x => x.id === id);
+    if (u) {
+        const tripVal = parseFloat(document.getElementById('checkin-trip-km').value);
+        if(!isNaN(tripVal)) {
+            document.getElementById('checkin-km').value = Math.round(u.km + tripVal);
+        } else {
+            document.getElementById('checkin-km').value = u.km;
         }
     }
 }
@@ -1807,6 +1857,7 @@ window.showCheckoutForm = showCheckoutForm;
 window.showCheckinForm = showCheckinForm;
 window.updateCheckoutKm = updateCheckoutKm;
 window.updateCheckinMin = updateCheckinMin;
+window.updateAbsKm = updateAbsKm;
 window.toggleVoiceAssistant = toggleVoiceAssistant;
 window.compressImage = compressImage;
 window.exportHistory = exportHistory;

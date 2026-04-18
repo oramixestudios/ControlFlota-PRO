@@ -41,7 +41,7 @@
             
             <h1 class="text-gradient" id="login-title" style="margin-bottom: 0.5rem; font-size: 2.4rem;">INTRA LOGISTICA</h1>
             <p style="color: var(--text-dim); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 2.5rem;">
-                Neural Logistics Core v5.3.3
+                Neural Logistics Core v5.3.4
             </p>
 
             <form onsubmit="handleLogin(event)">
@@ -453,7 +453,7 @@
 
                 <div class="row">
                     <div class="col">
-                        <label>Odómetro Final:</label>
+                        <label>Odómetro Final (Absoluto):</label>
                         <div style="display:flex; gap:10px;">
                             <input type="number" id="checkin-km" class="form-control" placeholder="000000" style="margin:0;" required>
                             <button type="button" class="btn btn-primary" onclick="startOCR('checkin-km')" style="padding: 0 1.2rem; font-weight:800; font-size:0.75rem;">CAM</button>
@@ -461,15 +461,35 @@
                         <small id="checkin-msg" style="color:var(--danger); display:block; margin: 10px 0; font-weight: 800;"></small>
                     </div>
                     <div class="col">
-                        <label>Nivel Combustible:</label>
-                        <select id="checkin-fuel" class="form-control">
-                            <option value="100%">Lleno (100%)</option>
-                            <option value="75%">75% (3/4)</option>
-                            <option value="50%">50% (1/2)</option>
-                            <option value="25%">25% (1/4)</option>
-                            <option value="R">Reserva</option>
-                        </select>
+                        <label>KM del Recorrido (En ceros):</label>
+                        <input type="number" id="checkin-trip-km" class="form-control" placeholder="Ej. 120.5" style="margin:0;" oninput="updateAbsKm()">
+                        <small style="color:var(--text-dim); display:block; margin: 10px 0;">¿Cuántos KM anduviste hoy?</small>
                     </div>
+                </div>
+
+                <div class="card" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 1rem; margin-bottom: 1.5rem; text-align: left;">
+                    <h4 style="color:var(--text-main); font-size: 0.85rem; margin-top:0; margin-bottom: 10px;">
+                        <i class="fa-solid fa-gas-pump" style="color:var(--accent);"></i> INCIDENCIA DE COMBUSTIBLE (Opcional)
+                    </h4>
+                    <p style="font-size: 0.65rem; color:var(--text-dim); margin-bottom: 15px;">Si abasteciste gasolina en este recorrido, regístrala aquí. Si no, déjalo en blanco para poder avanzar.</p>
+                    <div class="row">
+                        <div class="col">
+                            <label>Costo Total ($):</label>
+                            <input type="number" step="0.01" id="checkin-fuel-cost" class="form-control" placeholder="Ej. 500.00" style="margin:0;">
+                        </div>
+                        <div class="col">
+                            <label>Litros (L):</label>
+                            <input type="number" step="0.01" id="checkin-fuel-liters" class="form-control" placeholder="Ej. 20.5" style="margin:0;">
+                        </div>
+                    </div>
+                    <label style="margin-top:10px; display:block;">Medidor Gráfico (Final):</label>
+                    <select id="checkin-fuel" class="form-control" style="margin-bottom:0;">
+                        <option value="100%">Lleno (100%)</option>
+                        <option value="75%">75% (3/4)</option>
+                        <option value="50%">50% (1/2)</option>
+                        <option value="25%">25% (1/4)</option>
+                        <option value="R">Reserva</option>
+                    </select>
                 </div>
 
                 <label>Condición de la Unidad / Novedades:</label>
