@@ -740,11 +740,19 @@ async function handleCheckout(e) {
     const uid = document.getElementById('checkout-unit').value;
     const dest = document.getElementById('checkout-dest').value;
     const fuel = document.getElementById('checkout-fuel').value;
+    const providedKm = parseInt(document.getElementById('checkout-km').value);
     if (!uid) return;
 
     const coords = await getGPS();
     const units = DB.data().units;
     const idx = units.findIndex(u => u.id === uid);
+
+    if (!isNaN(providedKm) && providedKm > 0) {
+        if (providedKm < units[idx].km) {
+            return alert('Error: El kilometraje inicial no puede ser menor al de la bitácora anterior (' + units[idx].km + ').');
+        }
+        units[idx].km = providedKm;
+    }
 
     units[idx].status = 'busy';
     units[idx].assignedTo = CURRENT_USER.name;
